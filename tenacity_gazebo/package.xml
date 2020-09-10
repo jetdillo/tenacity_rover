@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>tenacity_gazebo</name>
+    <version>0.2.2</version>
+    <description>Gazebo simulation launch files for Tenacity, Yet Another Sawppy Rover.</description>
+    <maintainer email="espressobot@gmail.com">Steve Okay</maintainer>
+    <license>BSD-3-Clause</license>
+    <url type="website">https://github.com/srmainwaring/curio</url>
+    <url type="repository">https://github.com/srmainwaring/curio</url>
+    <url type="bugtracker">https://github.com/srmainwaring/curio/issues</url>
+    <author email="espressobot@gmail.com">Steve Okay</author>
+    <buildtool_depend>catkin</buildtool_depend>
+    <exec_depend>controller_manager</exec_depend>
+    <exec_depend>tenacity_description</exec_depend>
+    <exec_depend>tenacity_control</exec_depend>
+    <exec_depend>gazebo_ros</exec_depend>
+    <exec_depend>gazebo_ros_control</exec_depend>
+    <exec_depend>joint_state_controller</exec_depend>
+    <exec_depend>robot_state_publisher</exec_depend>
+    <exec_depend>rqt_robot_steering</exec_depend>
+    <exec_depend>xacro</exec_depend>
+
+    <export>
+        <gazebo_ros gazebo_model_path="${prefix}/models"/>
+    </export>
+</package>

@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<!--  xacro macros for Orbbec AstraPro DepthCam -->
+
+<robot name="astra" xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:property name="astra_length" value="0.1648" />
+      <xacro:property name="astra_width" value="0.078" />
+      <xacro:property name="astra_depth" value="0.050" />
+      <xacro:property name="astra_mass" value="0.15" />
+
+    <xacro:macro name="astra_link">
+        <link name="astra">
+            <visual>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <geometry>
+                    <mesh filename="package://tenacity_description/meshes/sensors/astra-camera.stl" />
+                </geometry>
+                <material name="grey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <geometry>
+			<box size="0.1648 0.078 0.050" />
+                </geometry>
+            </collision>
+        </link>
+
+        <gazebo reference="astra">
+            <material>Gazebo/Green</material>
+            <sensor name="astra_camera" type="depth">
+               <camera>
+               <horizontal_fov>1.05</horizontal_fov>
+               <image>
+                  <width>1280</width>
+                  <height>720</height>
+               </image>
+               <clip>
+                 <near>0.1</near>
+                 <far>100</far>
+               </clip>
+             </camera>
+             <plugin name="astra_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+          <baseline>0.2</baseline>
+          <alwaysOn>true</alwaysOn>
+          <!-- Keep this zero, update_rate in the parent <sensor> tag
+            will control the frame rate. -->
+          <updateRate>0.0</updateRate>
+          <cameraName>camera_ir</cameraName>
+          <imageTopicName>/camera/color/image_raw</imageTopicName>
+          <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
+          <frameName>camera_link</frameName>
+          <pointCloudCutoff>0.5</pointCloudCutoff>
+          <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>0</Cx>
+          <Cy>0</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+         </sensor>
+        </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="astra_joint" params="x y z p" >
+        <joint name="astra_joint" type="fixed">
+		<origin rpy="0 ${p} 0" xyz="${x} ${y} ${z}"/>
+            <parent link="base_link" />
+            <child link="astra" />
+        </joint>
+
+        <gazebo reference="astra_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>
