@@ -13,6 +13,8 @@ steer_max=815
 
 steer_state={}
 
+steer_mode=0
+
 class Corner:
 
    def __init__(self):
@@ -21,7 +23,7 @@ class Corner:
       self.twist = Twist()
       rospy.init_node("corner_steering_ctl")
       rospy.Subscriber("/cmd_vel",Twist,self.cmd_vel_cb)
-      rospy.Subscriber("/joy", Joy, self.combo_code_cb)
+      rospy.Subscriber("/joy", Joy, self.joy_cb)
       #We have 4 named steering controllers, create subscribers and publishers for them 
 
       self.steer_controllers=['front_left','front_right','rear_left','rear_right']
@@ -39,6 +41,13 @@ class Corner:
       self.twist.angular.z = data.angular.z
       
       #print self.twist.angular.z
+
+   def joy_cb(self,data):
+
+      if data.axes[4] == -1.0:
+         steer_mode = 1
+      if data.axes[4] == 1.0:
+         steer_mode = 2
    
    def twist_to_steer_angle(self):
       
@@ -67,19 +76,33 @@ class Corner:
       while (not rospy.is_shutdown()):
          front_newpos=0
          rear_newpos=0 
-         if (self.twist.angular.z !=0): 
-            front_newpos = (self.twist.angular.z * 1.5757)*-1
-            rear_newpos = front_newpos *-1 
-         else:
-            front_newpos = 0
-        
-         print("front_newpos=%f rear_newpos=%f") % (front_newpos,rear_newpos) 
 
-         self.front_left_sp.publish(front_newpos)
-         self.front_right_sp.publish(front_newpos)
-         self.rear_left_sp.publish(rear_newpos)
-         self.rear_right_sp.publish(rear_newpos)
-         time.sleep(1)
+         if steer_mode == 0:
+            if (self.twist.angular.z !=0): 
+               front_newpos = (self.twist.angular.z * 1.5757)*-1
+               rear_newpos = front_newpos *-1 
+            else:
+               front_newpos = 0
+        
+            print("front_newpos=%f rear_newpos=%f") % (front_newpos,rear_newpos) 
+
+            self.front_left_sp.publish(front_newpos)
+            self.front_right_sp.publish(front_newpos)
+            self.rear_left_sp.publish(rear_newpos)
+            self.rear_right_sp.publish(rear_newpos)
+            time.sleep(1)
+     
+         if steer_mode != 0:
+         
+            left_front_pos = -0.64
+            right_front_pos = 0.64
+            left_rear_pos = 0.64
+            right_rear_pos = -0.64
+            self.front_left_sp.publish(left_front_pos)
+            self.front_right_sp.publish(right_front_pos)
+            self.rear_left_sp.publish(left_rear_pos)
+            self.rear_right_sp.publish(right_rear_pos)
+            time.sleep(1)
 
 #  subscribe to Dynamixel channel to get list of servos
 #  There should be 4 IDs: 1,2,5,6

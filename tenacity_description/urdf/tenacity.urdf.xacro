@@ -46,7 +46,8 @@
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_imu.xacro"/>
     <xacro:include filename="$(find tenacity_description)/urdf/sensor_stalk.xacro"/>
     <xacro:include filename="$(find tenacity_description)/urdf/mast_mount.xacro"/>
-    <xacro:include filename="$(find tenacity_description)/urdf/astra.xacro"/>
+    <xacro:include filename="$(find tenacity_description)/urdf/astra.xacro"/> 
+    <!-- <xacro:include filename="$(find tenacity_description)/urdf/tenacity_astra.xacro"/> -->
 
     <!-- Gazebo plugins -->
     <gazebo>
@@ -596,8 +597,8 @@
     <xacro:corner_wheel_joint lon_label="back" lat_label="right" reflect="-1"/>
 
     <!-- Laser Scan Sensor -->
-    <xacro:astra_link />
-    <xacro:astra_joint x="0.240" y="0.005" z="0.154" roll="0.17" pitch="0.00" yaw="1.57" />
+    <xacro:astra_link /> 
+    <xacro:astra_joint x="0.240" y="0.005" z="0.154" roll="0.17" pitch="0.00" yaw="1.57" /> 
 
     <!-- Antenna/Sensor Mast -->
     <xacro:mast_mount_link />

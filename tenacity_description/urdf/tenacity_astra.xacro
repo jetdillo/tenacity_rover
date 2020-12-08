@@ -12,7 +12,7 @@
             <visual>
                 <origin rpy="0 0 0" xyz="0 0 0" />
                 <geometry>
-                    <mesh filename="package://tenacity_description/meshes/sensors/astra-camera.stl" />
+                   <mesh filename="package://tenacity_description/meshes/sensors/astra-camera.stl" /> 
                 </geometry>
                 <material name="grey" />
             </visual>
@@ -38,7 +38,7 @@
                  <far>100</far>
                </clip>
              </camera>
-             <plugin name="astra_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+         <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
           <baseline>0.2</baseline>
           <alwaysOn>true</alwaysOn>
           <!-- Keep this zero, update_rate in the parent <sensor> tag
@@ -63,14 +63,14 @@
           <Cy>0</Cy>
           <focalLength>0</focalLength>
           <hackBaseline>0</hackBaseline>
-        </plugin>
+        </plugin> 
          </sensor>
         </gazebo>
     </xacro:macro>
 
-    <xacro:macro name="astra_joint" params="x y z p" >
+    <xacro:macro name="astra_joint" params="x y z roll pitch yaw" >
         <joint name="astra_joint" type="fixed">
-		<origin rpy="0 ${p} 0" xyz="${x} ${y} ${z}"/>
+		<origin rpy="${roll} ${pitch} ${yaw}" xyz="${x} ${y} ${z}"/>
             <parent link="base_link" />
             <child link="astra" />
         </joint>
