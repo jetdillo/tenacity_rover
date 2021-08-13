@@ -1,0 +1,15 @@
+<launch>
+   <machine
+    name="nanotyrannus"
+    address="192.168.2.7"
+    user="armadilo"
+    timeout="30"
+    env-loader="/home/armadilo/catkin_ws/devel/remote_env_loader.sh"
+    />
+    <node 
+     machine="nanotyrannus"
+     name="astra_camera"
+     pkg="astra_camera"
+     type="astra"
+     />
+</launch>

@@ -1,0 +1,24 @@
+<!-- Start the watchdog services for attitude,cliff and battery systems
+-->
+<launch>
+    <!-- start attitude node -->
+    <node 
+        pkg="tenacity_watchdog_manager"
+        type="attitude_watchdog.py"
+        name="attitude_monitor">
+    </node>
+   
+    <!-- start cliff_sensor node -->
+    <node 
+        pkg="tenacity_watchdog_manager"
+        type="cliff_watchdog.py"
+        name="cliff_sensor">
+     </node>
+<!--
+    <node 
+        pkg="tenacity_watchdog_manager"
+        type="battery_watchdog.py"
+        name="battery_sensor">
+     </node>
+-->
+</launch>
