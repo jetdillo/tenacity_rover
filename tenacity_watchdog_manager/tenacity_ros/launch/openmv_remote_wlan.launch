@@ -1,6 +1,0 @@
-<launch>
-<group>
-    <machine name="nanotyrannus" address="10.42.0.20" user="armadilo" env-loader="/home/armadilo/catkin_ws/devel/env.sh" default="true" />
-    <include file="$(find openmv_cam)/launch/openmv_cam.launch" />
-  </group>
-</launch>
