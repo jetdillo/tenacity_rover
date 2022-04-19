@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+
+<!--  xacro macros for oakd_mount mount -->
+<robot name="oakd_mount" xmlns:xacro="http://ros.org/wiki/xacro">
+
+      <xacro:property name="oakd_mount_length" value="0.0803" />
+      <xacro:property name="oakd_mount_width" value="0.0957" />
+      <xacro:property name="oakd_mount_depth" value="0.1267" />
+      <xacro:property name="oakd_mount_mass" value="0.15" />
+
+
+    <xacro:macro name="oakd_mount_link">
+      <link name="oakd_mount">
+          <visual>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <mesh filename="package://tenacity_description/meshes/OAK-D_Sensor_Stalk_no_camera-export.stl" scale="0.001 0.001 0.001"/>
+                  <!-- <box size="${oakd_mount_length} ${oakd_mount_width} ${oakd_mount_depth}"/> -->
+              </geometry>
+              <material name="green" />
+          </visual>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <box size="${oakd_mount_length} ${oakd_mount_width} ${oakd_mount_depth}"/>
+              </geometry>
+          </collision>
+          <xacro:solid_cuboid_inertial
+              rpy="0 0 0" xyz="0 0 0"
+              mass="${oakd_mount_mass}"
+              x="${oakd_mount_length}" y="${oakd_mount_width}" z="${oakd_mount_depth}" />
+      </link>
+
+      <gazebo reference="oakd_mount">
+          <material>Gazebo/Green</material>
+      </gazebo>
+
+      <gazebo reference="oakd_mount_joint">
+          <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
+          <!-- <preserveFixedJoint>true</preserveFixedJoint> -->
+      </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="oakd_mount_joint" params="x y z" >
+        <joint name="oakd_mount_joint" type="fixed">
+            <origin rpy="0 0 1.57" xyz="${x} ${y} ${z}"/>
+            <parent link="base_link" />
+            <child link="oakd_mount" />
+        </joint>
+
+        <gazebo reference="oakd_mount_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>

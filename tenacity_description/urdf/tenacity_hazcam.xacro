@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+
+<!--  xacro macros for hazcam mount -->
+<robot name="hazcam" xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:macro name="hazcam_link" params="mount_point">
+      <link name="hazcam_${mount_point}">
+              <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+          <visual>
+              <origin rpy="0 0 0" xyz="-0.05 0 0" /> 
+              <geometry>
+		      <box size="0.01 0.01 0.01" />
+              </geometry>
+              <material name="green" />
+          </visual>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+		      <box size="0.01 0.01 0.01" />
+              </geometry>
+          </collision>
+          <xacro:solid_cuboid_inertial
+              rpy="0 0 0" xyz="0 0 0"
+              mass="0.015"
+              x="0.01" y="0.01" z="0.01" />
+      </link>
+<!--
+      <joint name="camera_optical_joint" type="fixed"> 
+         <origin xyz="0.00 0 0.00" rpy="${-pi/2} 0 ${-pi/2}"/>
+         <parent link="hazcam"/>
+         <child link="camera_link_optical"/>
+      </joint>
+
+  <link name="camera_link_optical">
+  </link>
+-->
+ 
+  <gazebo reference="hazcam_${mount_point}">
+      <material>Gazebo/White</material>
+    <sensor type="camera" name="hazcam_camera">
+      <update_rate>30.0</update_rate>
+      <camera name="head">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>800</width>
+          <height>800</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>300</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <!-- Noise is sampled independently per pixel on each frame.
+               That pixel's noise value is added to each of its color
+               channels, which at that point lie in the range [0,1]. -->
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>hazcam_${mount_point}</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>camera_link_optical</frameName>
+        <!-- setting hackBaseline to anything but 0.0 will cause a misalignment
+            between the gazebo sensor image and the frame it is supposed to
+            be attached to -->
+        <hackBaseline>0.0</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+        <CxPrime>0</CxPrime>
+        <Cx>0.0</Cx>
+        <Cy>0.0</Cy>
+        <focalLength>0.0</focalLength>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+      <gazebo reference="hazcam_joint_${mount_point}">
+          <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
+          <!-- <preserveFixedJoint>true</preserveFixedJoint> -->
+      </gazebo>
+    </xacro:macro>
+
+    <!-- <xacro:macro name="hazcam_joint_${mount_point}" params="x y z roll pitch yaw mount_point" > -->
+    <xacro:macro name="hazcam_joint" params="x y z roll pitch yaw mount_point" > 
+        <joint name="hazcam_joint_${mount_point}" type="fixed">
+		<origin rpy="${roll} ${pitch} ${yaw}" xyz="${x} ${y} ${z}"/>
+            <parent link="base_link" />
+            <child link="hazcam_${mount_point}" />
+        </joint>
+
+        <gazebo reference="hazcam_joint_${mount_point}">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>

@@ -1,0 +1,14 @@
+<robot name="camera">
+
+  <link name="trellis">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tenacity_gazebo/meshes/trellis/trellis.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="metal">
+        <color rgba="0.6 0.6 0.6 1"/>
+      </material>
+    </visual>
+  </link>
+</robot>

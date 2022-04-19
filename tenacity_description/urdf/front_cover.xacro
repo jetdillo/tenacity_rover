@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+
+<!--  xacro macros for front_cover mount -->
+<robot name="front_cover" xmlns:xacro="http://ros.org/wiki/xacro">
+
+      <xacro:property name="front_cover_length" value="0.188" />
+      <xacro:property name="front_cover_width" value="0.06" />
+      <xacro:property name="front_cover_depth" value="0.09" />
+      <xacro:property name="front_cover_mass" value="0.15" />
+
+
+    <xacro:macro name="front_cover_link">
+      <link name="front_cover">
+          <visual>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <mesh filename="package://tenacity_description/meshes/bases/rover_face_mount.stl" scale="0.001 0.001 0.001"/>
+                  <!-- <box size="${front_cover_length} ${front_cover_width} ${front_cover_depth}"/> -->
+              </geometry>
+              <material name="green" />
+          </visual>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <box size="${front_cover_length} ${front_cover_width} ${front_cover_depth}"/>
+              </geometry>
+          </collision>
+          <xacro:solid_cuboid_inertial
+              rpy="0 0 0" xyz="0 0 0"
+              mass="${front_cover_mass}"
+              x="${front_cover_length}" y="${front_cover_width}" z="${front_cover_depth}" />
+      </link>
+
+      <gazebo reference="front_cover">
+          <material>Gazebo/Green</material>
+      </gazebo>
+
+      <gazebo reference="front_cover_joint">
+          <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
+          <!-- <preserveFixedJoint>true</preserveFixedJoint> -->
+      </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="front_cover_joint" params="x y z yaw pitch roll" >
+        <joint name="front_cover_joint" type="fixed">
+		<origin rpy="${yaw} ${pitch} ${roll}" xyz="${x} ${y} ${z}"/>
+            <parent link="base_link" />
+            <child link="front_cover" />
+        </joint>
+
+        <gazebo reference="front_cover_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>

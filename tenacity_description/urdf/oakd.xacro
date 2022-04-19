@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+
+<!--  xacro macros for oakd mount -->
+<robot name="oakd" xmlns:xacro="http://ros.org/wiki/xacro">
+
+      <xacro:property name="oakd_length" value="0.0803" />
+      <xacro:property name="oakd_width" value="0.0957" />
+      <xacro:property name="oakd_depth" value="0.1267" />
+      <xacro:property name="oakd_mass" value="0.15" />
+
+      <xacro:include filename="$(find tenacity_description)/urdf/oakd.gazebo" />
+
+    <xacro:macro name="oakd_link" >
+	    <link name="oakd">
+             <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+          <visual>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+		      <mesh filename="package://tenacity_description/meshes/sensors/OAK-D.dae" />
+              </geometry>
+	       <material name="grey" />
+          </visual>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <box size="${oakd_length} ${oakd_width} ${oakd_depth}"/>
+              </geometry>
+          </collision>
+          <xacro:solid_cuboid_inertial
+              rpy="0 0 0" xyz="0 0 0"
+              mass="${oakd_mass}"
+              x="${oakd_length}" y="${oakd_width}" z="${oakd_depth}" />
+      </link>
+
+      <gazebo reference="oakd">
+          <material>Gazebo/Grey</material>
+      </gazebo>
+
+      <gazebo reference="oakd_joint">
+          <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
+          <!-- <preserveFixedJoint>true</preserveFixedJoint> -->
+      </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="oakd_joint" params="x y z roll pitch yaw" >
+        <joint name="oakd_joint" type="fixed">
+		<origin rpy="${roll} ${pitch} ${yaw}" xyz="${x} ${y} ${z}"/>
+            <parent link="base_link" />
+            <child link="oakd" />
+        </joint>
+
+        <gazebo reference="oakd_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>

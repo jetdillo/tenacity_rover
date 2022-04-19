@@ -1,0 +1,14 @@
+# Configuration for the forward(left/right) sonar sensors
+# 
+fwd_ranger:
+    type: 'Range'
+
+    # Odometry related 
+    publish_rate: 50
+    open_loop: false
+
+    # forward sonar values
+    outer_range: 0.25
+    warn_range: 0.15
+    critcal_range: 0.075
+    fwd_cliff: 0.3

@@ -7,6 +7,8 @@
     <arg name="use_sim_time" default="true"/>
     <arg name="headless" default="false"/>
     <arg name="physics" default="ode"/>
+
+    <rosparam command="load" file="$(find tenacity_ros)/param/range_params.yaml" />
  
     <!-- Launch Gazebo -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">

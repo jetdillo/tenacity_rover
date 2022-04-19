@@ -44,10 +44,16 @@
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_inertials.xacro"/>
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_laser.xacro"/> 
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_imu.xacro"/>
-    <xacro:include filename="$(find tenacity_description)/urdf/sensor_stalk.xacro"/>
+    <!--    <xacro:include filename="$(find tenacity_description)/urdf/sensor_stalk.xacro"/> -->
     <xacro:include filename="$(find tenacity_description)/urdf/mast_mount.xacro"/>
-    <xacro:include filename="$(find tenacity_description)/urdf/astra.xacro"/> 
-    <!-- <xacro:include filename="$(find tenacity_description)/urdf/tenacity_astra.xacro"/> -->
+    <!--    <xacro:include filename="$(find tenacity_description)/urdf/astra.xacro"/> --> 
+    <!-- <xacro:include filename="$(find tenacity_description)/urdf/oakd.xacro"/> -->
+    <!-- <xacro:include filename="$(find tenacity_description)/urdf/tenacity_oakd.xacro"/> --> 
+    <xacro:include filename="$(find tenacity_description)/urdf/tenacity_oakd_multicamera.xacro"/> 
+    <xacro:include filename="$(find tenacity_description)/urdf/oakd_mount.xacro"/>
+    <xacro:include filename="$(find tenacity_description)/urdf/front_cover.xacro"/>
+    <xacro:include filename="$(find tenacity_description)/urdf/tenacity_sonar.xacro"/>
+    <xacro:include filename="$(find tenacity_description)/urdf/tenacity_hazcam.xacro"/>  
 
     <!-- Gazebo plugins -->
     <gazebo>
@@ -102,7 +108,7 @@
     <xacro:property name="body_box_length" value="0.425" />
     <xacro:property name="body_box_width" value="0.285" />
     <xacro:property name="body_box_depth" value="0.093" />
-    <xacro:property name="body_box_mass" value="1.0" />
+    <xacro:property name="body_box_mass" value="1.00" />
 
     <xacro:property name="front_rocker_arm_length" value="0.182" />
     <xacro:property name="back_rocker_arm_length" value="0.161" />
@@ -381,10 +387,36 @@
                 mass="0.25"
                 x="0.1" y="0.1" z="0.1" />
         </link> 
-
         <gazebo reference="${lon_label}_${lat_label}_corner_link">
             <material>Gazebo/Green</material>
         </gazebo>
+      </xacro:macro>
+
+    <xacro:macro name="corner_link_box" params="lon_label lat_label reflect">
+        <link name="${lon_label}_${lat_label}_corner_link_box">
+            <visual>
+                <origin rpy="0 0 0" xyz="0.05 0 0.05" />
+                <geometry>
+                     <box size="0.1 0.1 0.1"/> 
+                </geometry>
+                <material name="blue" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+                <geometry>
+                    <box size="0.1 0.1 0.1"/>
+                </geometry>
+            </collision>
+            <xacro:solid_cuboid_inertial 
+                rpy="0 0 0" xyz="0 0 0"
+                mass="0.25"
+                x="0.1" y="0.1" z="0.1" />
+        </link> 
+
+        <gazebo reference="${lon_label}_${lat_label}_corner_link_box">
+            <material>Gazebo/Blue</material>
+        </gazebo>
+
     </xacro:macro>
     <xacro:corner_link lon_label="front" lat_label="left" reflect="1"/>
     <xacro:corner_link lon_label="front" lat_label="right" reflect="-1"/>
@@ -596,18 +628,47 @@
     <xacro:corner_wheel_joint lon_label="back" lat_label="left" reflect="1"/>
     <xacro:corner_wheel_joint lon_label="back" lat_label="right" reflect="-1"/>
 
-    <!-- Laser Scan Sensor -->
-    <xacro:astra_link /> 
-    <xacro:astra_joint x="0.240" y="0.005" z="0.154" roll="0.17" pitch="0.00" yaw="1.57" /> 
+    <!-- AstraCam -->
+    <!--    <xacro:astra_link />  -->
+    <!-- <xacro:astra_joint x="0.3080" y="0.005" z="0.170" roll="0.00" pitch="0.00" yaw="0.00" /> --> 
 
     <!-- Antenna/Sensor Mast -->
     <xacro:mast_mount_link />
     <xacro:mast_mount_joint x="-0.152" y="-0.090" z="0.050" />
 
      <!-- SensorStalk -->
-     <xacro:sensor_stalk_link /> 
-     <xacro:sensor_stalk_joint x="0.2280" y="0.005" z="0.0320" />
+     <xacro:oakd_mount_link /> 
+     <xacro:oakd_mount_joint x="0.2380" y="-0.004" z="0.0320" /> 
+
+     <xacro:oakd_link mount_point="main" /> 
+     <!-- <xacro:oakd_joint x="0.2850" y="-0.006" z="0.2080"  roll="1.5757" pitch="0.00" yaw="1.5757" mount_point="main"/> -->
+     <xacro:oakd_joint x="0.2850" y="-0.006" z="0.2080"  roll="0.00" pitch="0.00" yaw="0.00" mount_point="main"/>
+
+     <xacro:front_cover_link />
+     <xacro:front_cover_joint x="0.150" y="0.00" z="-0.0180"  roll="0" pitch="0.00" yaw="0"/>
+     <!-- Sonar Sensor -->
+     <xacro:sonar_link mount_point="cliff"/>
+     <xacro:sonar_joint x="0.230" y="0.005" z="-0.0320" roll="0.00" pitch="0.4" yaw="0.00" mount_point="cliff"/>
      
+     <xacro:sonar_link mount_point="forward"/>
+     <xacro:sonar_joint x="0.250" y="0.00" z="0.0420" roll="0.00" pitch="0.0" yaw="0.00" mount_point="forward"/>
+     
+     <xacro:sonar_link mount_point="left"/>
+     <xacro:sonar_joint x="0.285" y="0.2559" z="0.0180" roll="0.00" pitch="0" yaw="0.65" mount_point="left"/>
+     
+     <xacro:sonar_link mount_point="right"/>
+     <xacro:sonar_joint x="0.285" y="-0.2559" z="0.0180" roll="0.00" pitch="0" yaw="-0.65" mount_point="right"/>
+
+     <!-- Hazard Cameras --> 
+     <!--     <xacro:hazcam_link mount_point="left"/> -->
+     <!-- <xacro:hazcam_joint x="0.295" y="0.2559" z="0.0180" roll="0.00" pitch="0" yaw="1.5757" mount_point="left"/> -->
+     
+     <!--  <xacro:hazcam_link mount_point="right"/> -->
+     <!--   <xacro:hazcam_joint x="0.295" y="-0.2559" z="0.0180" roll="0.00" pitch="0" yaw="-1.5757" mount_point="right"/> -->
+
+     <!--   <xacro:hazcam_link mount_point="forward"/> -->
+     <!--   <xacro:hazcam_joint x="0.31" y="0.003" z="0.0080" roll="0.00" pitch="0" yaw="0" mount_point="forward"/> -->
+
      <!-- IMU --> 
      <xacro:imu_link /> 
      <xacro:imu_joint x="0.0" y="0.0" z="-0.008" />

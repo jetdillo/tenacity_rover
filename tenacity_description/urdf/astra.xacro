@@ -8,14 +8,14 @@
       <xacro:property name="astra_depth" value="0.050" />
       <xacro:property name="astra_mass" value="0.15" />
 
-
+    <xacro:include filename="$(find tenacity_description)/urdf/astra.gazebo" />
     <xacro:macro name="astra_link">
       <link name="astra">
+              <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
           <visual>
-              <origin rpy="0 0 0" xyz="0 0 0" />
+              <origin rpy="0 0 0" xyz="-0.05 0 0" /> 
               <geometry>
-                  <mesh filename="package://tenacity_description/meshes/sensors/astra-cam.stl" scale="0.001 0.001 0.001"/>
-                  <!-- <box size="${astra_length} ${astra_width} ${astra_depth}"/> -->
+                     <mesh filename="package://tenacity_description/meshes/sensors/orbbec_astra_camera.dae"/>
               </geometry>
               <material name="green" />
           </visual>
@@ -30,36 +30,16 @@
               mass="${astra_mass}"
               x="${astra_length}" y="${astra_width}" z="${astra_depth}" />
       </link>
+<!--
+      <joint name="camera_optical_joint" type="fixed"> 
+         <origin xyz="0.00 0 0.00" rpy="${-pi/2} 0 ${-pi/2}"/>
+         <parent link="astra"/>
+         <child link="camera_link_optical"/>
+      </joint>
 
-      <gazebo reference="astra">
-          <material>Gazebo/White</material>
-          <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
-           <baseline>0.2</baseline>
-           <alwaysOn>true</alwaysOn>
-           <!-- Keep this zero, update_rate in the parent <sensor> tag
-             will control the frame rate. -->
-           <updateRate>0.0</updateRate>
-           <cameraName>camera_ir</cameraName>
-           <imageTopicName>/camera/color/image_raw</imageTopicName>
-           <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
-           <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
-           <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
-           <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
-           <frameName>camera_link</frameName>
-           <pointCloudCutoff>0.5</pointCloudCutoff>
-           <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
-           <distortionK1>0</distortionK1>
-           <distortionK2>0</distortionK2>
-           <distortionK3>0</distortionK3>
-           <distortionT1>0</distortionT1>
-           <distortionT2>0</distortionT2>
-           <CxPrime>0</CxPrime>
-           <Cx>0</Cx>
-           <Cy>0</Cy>
-           <focalLength>0</focalLength>
-           <hackBaseline>0</hackBaseline>
-         </plugin>
-      </gazebo>
+  <link name="camera_link_optical">
+  </link>
+-->
 
       <gazebo reference="astra_joint">
           <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
