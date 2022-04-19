@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+
+<!--  xacro macros for astra mount -->
+<robot name="astra" xmlns:xacro="http://ros.org/wiki/xacro">
+
+      <xacro:property name="astra_length" value="0.1648" />
+      <xacro:property name="astra_width" value="0.0789" />
+      <xacro:property name="astra_depth" value="0.050" />
+      <xacro:property name="astra_mass" value="0.15" />
+
+
+    <xacro:macro name="astra_link">
+      <link name="astra">
+          <visual>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <mesh filename="package://tenacity_description/meshes/sensors/astra-cam.stl" scale="0.001 0.001 0.001"/>
+                  <!-- <box size="${astra_length} ${astra_width} ${astra_depth}"/> -->
+              </geometry>
+              <material name="green" />
+          </visual>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+		      <box size="${astra_length} ${astra_width} ${astra_depth}" />
+              </geometry>
+          </collision>
+          <xacro:solid_cuboid_inertial
+              rpy="0 0 0" xyz="0 0 0"
+              mass="${astra_mass}"
+              x="${astra_length}" y="${astra_width}" z="${astra_depth}" />
+      </link>
+
+      <gazebo reference="astra">
+          <material>Gazebo/White</material>
+      </gazebo>
+
+      <gazebo reference="astra_joint">
+          <!-- <disableFixedJointLumping>true</disableFixedJointLumping>  -->
+          <!-- <preserveFixedJoint>true</preserveFixedJoint> -->
+      </gazebo>
+    </xacro:macro>
+
+    <xacro:macro name="astra_joint" params="x y z roll pitch yaw" >
+        <joint name="astra_joint" type="fixed">
+		<origin rpy="${roll} ${pitch} ${yaw}" xyz="${x} ${y} ${z}"/>
+            <parent link="base_link" />
+            <child link="astra" />
+        </joint>
+
+        <gazebo reference="astra_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
+</robot>

@@ -2,6 +2,10 @@
 <!--  xacro macros for sonars -->
 
 <robot name="tenacity_sonar" xmlns:xacro="http://ros.org/wiki/xacro">
+=======
+<!--  xacro macros for laser sensor (rplidar_a1).
+
+ -->
     <xacro:macro name="sonar_link" params="mount_point"> 
         <link name="${mount_point}_sonar">
             <visual>
