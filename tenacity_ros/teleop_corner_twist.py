@@ -56,9 +56,9 @@ class Corner:
 
    def joy_cb(self,data):
       
-      if data.axes[4] == -1.0:
+      if data.axes[6] == -1.0:
          self.steer_mode = 2
-      elif data.axes[4] == 1.0:
+      elif data.axes[6] == 1.0:
          self.steer_mode = 1
       else:
          self.steer_mode = 0

@@ -112,7 +112,7 @@
 
     <xacro:macro name="oakd_joint" params="x y z roll pitch yaw mount_point" >
         <joint name="oakd_joint_${mount_point}" type="fixed">
-                <origin rpy="${roll} ${pitch} ${yaw}" xyz="${x}+0.1 ${y}-0.01 ${z}"/>
+                <origin rpy="${roll} ${pitch} ${yaw}" xyz="${x} ${y} ${z}"/>
             <parent link="base_link" />
             <child link="oakd_${mount_point}" />
         </joint>

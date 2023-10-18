@@ -3,11 +3,7 @@
 -->
 <launch>
     <!-- start corner_steering node -->
-    <node 
-        pkg="tenacity_ros"
-        type="teleop_corner_twist.py"
-        name="teleop_corner_twist">
-     </node>
+    <node name="teleop_corner_twist pkg="tenacity_ros" type="teleop_corner_twist.py" />
 
     <!-- start teleop_twist interface -->
     <include file="$(find teleop_twist_joy)/launch/teleop.launch">
@@ -32,21 +28,22 @@
 
     <!-- start current monitor node for motor and compute INA260s -->
     <include file="$(find ros_battery_monitor)/launch/current_monitor.launch">
-    <arg name="port" value="/dev/ttyUSB1"/>
+    <arg name="port" value="/dev/ina"/>
     <arg name="bus" value="compute" />
     <arg name="baud" value="57600" />
     </include>
+
+  <include file="$(find rasbotix_sonar)/launch/hcs_sonar_node.launch">
+  <arg name="port" value="/dev/ttyAMA0" />
+  <arg name="baud" value="57600" />
+  </include>
 
     <!-- start watchdog manager to monitor alert states -->
     <include file="$(find tenacity_watchdog_manager)/launch/watchdog_manager.launch"> 
     </include>
 
-    <include file="$(find tenacity_ros)/launch/astra_remote.launch"> 
-    </include>
-   
-   <include file="$(find rasbotix_sonar)/launch/hcs_sonar_node.launch">
-   <arg name="port" value="/dev/ttyAMA0" />
-   <arg name="baud" value="57600" />
+  <include file="$(find tenacity_ros)/launch/oakd_yolo_remote.launch">
+  <!--  <include file="$(find tenacity_ros)/launch/cameras_remote.launch"> -->
    </include>
-
+   
 </launch>

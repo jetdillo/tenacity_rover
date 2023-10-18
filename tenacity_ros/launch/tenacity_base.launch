@@ -2,7 +2,7 @@
  Start the teleop controls for the Tenacity Rover
 -->
 <launch>
-    <arg name="port" default="/dev/ttyACM0"/>
+    <arg name="port" value="/dev/ttyACM0"/>
 
     <!-- start rosserial node -->
     <node 

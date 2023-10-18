@@ -1,10 +1,8 @@
 <launch>
-    <arg name="port" default="/dev/ttyACM1"/>
-    <!-- start rosserial node -->
-    <node
-        pkg="rosserial_python"
-        type="serial_node.py"
-        name="drive_node">
-        args="$(port)"
-    </node>
+   <!-- start motor driver node -->
+   <!-- everything else is done in the motorless launch file -->
+   <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+    <param name="port" value="/dev/motors"/>
+    <param name="baud" value="57600"/>
+  </node>
 </launch>

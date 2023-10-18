@@ -3,5 +3,5 @@
 <launch>
     <arg name="model" default="$(find tenacity_description)/urdf/tenacity.urdf.xacro"/>
 
-    <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
 </launch>

@@ -44,11 +44,13 @@
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_inertials.xacro"/>
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_laser.xacro"/> 
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_imu.xacro"/>
-    <!--    <xacro:include filename="$(find tenacity_description)/urdf/sensor_stalk.xacro"/> -->
+    <xacro:include filename="$(find tenacity_description)/urdf/sensor_stalk.xacro"/> 
     <xacro:include filename="$(find tenacity_description)/urdf/mast_mount.xacro"/>
+
     <!--    <xacro:include filename="$(find tenacity_description)/urdf/astra.xacro"/> --> 
     <!-- <xacro:include filename="$(find tenacity_description)/urdf/oakd.xacro"/> -->
     <!-- <xacro:include filename="$(find tenacity_description)/urdf/tenacity_oakd.xacro"/> --> 
+
     <xacro:include filename="$(find tenacity_description)/urdf/tenacity_oakd_multicamera.xacro"/> 
     <xacro:include filename="$(find tenacity_description)/urdf/oakd_mount.xacro"/>
     <xacro:include filename="$(find tenacity_description)/urdf/front_cover.xacro"/>
@@ -638,8 +640,7 @@
 
      <!-- SensorStalk -->
      <xacro:oakd_link mount_point="main" /> 
-     <!-- <xacro:oakd_joint x="0.2850" y="-0.006" z="0.2080"  roll="1.5757" pitch="0.00" yaw="1.5757" mount_point="main"/> -->
-     <xacro:oakd_joint x="0.2850" y="-0.006" z="0.2080"  roll="0.00" pitch="0.00" yaw="0.00" mount_point="main"/>
+     <xacro:oakd_joint x="0.270" y="0.002" z="0.1850"  roll="0.00" pitch="0.00" yaw="0.00" mount_point="main"/>
 
      <xacro:front_cover_link />
      <xacro:front_cover_joint x="0.150" y="0.00" z="-0.0180"  roll="0" pitch="0.00" yaw="0"/>
