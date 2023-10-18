@@ -1,0 +1,8 @@
+<launch>
+<group>
+<!--    <machine name="nanotyrannus" address="192.168.2.7" user="armadilo" env-loader="/home/armadilo/catkin_ws/devel/remote_env_loader.sh" default="true" /> -->
+    <machine name="nanotyrannus" address="192.168.2.7" user="armadilo" env-loader="/home/armadilo/catkin_ws/devel/remote_env_loader.sh" default="true" />
+    <include file="$(find depthai_examples)/launch/yolov4_publisher.launch" />
+    <include file="$(find jetson_camera)/launch/jetson_camera.launch" />
+</group>
+</launch>

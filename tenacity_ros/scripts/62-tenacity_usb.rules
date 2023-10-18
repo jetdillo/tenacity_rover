@@ -1,0 +1,9 @@
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="usb2d"
+#SUBSYSTEM=="tty", KERNEL=="ttyAMA[0-9]*", MODE="666", SYMLINK+="range", GROUP="dialout"
+
+#SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ACTION=="add", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", ENV{ID_PATH_TAG}=="*-usb-0_1_2_4_1_0*" SYMLINK+="ina", GROUP="dialout"
+
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ACTION=="add", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="ina", GROUP="dialout"
+SUBSYSTEMS=="usb", KERNEL=="ttyACM[0-9]*", ACTION=="add", ATTRS{idVendor}=="2a03", ATTRS{idProduct}=="0042", MODE="666", SYMLINK+="motors", GROUP="dialout"
+#SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="0e6f", ATTRS{idProduct}=="1314", GROUP="dialout", MODE="666"
+KERNEL=="ttyS[0-9]*", SYMLINK+="range", GROUP="dialout", MODE="0666"
