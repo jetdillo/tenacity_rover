@@ -11,14 +11,16 @@
             <visual>
                 <origin rpy="0 0 0" xyz="0 0 0" />
                 <geometry>
-	   	    <box size="0.01 0.01 0.01"/>
+	   	    <!-- <box size="0.01 0.01 0.01"/> -->
+                      <mesh filename="package://tenacity_description/meshes/brackets/Sonar_Bracket_${mount_point}.dae" />
                 </geometry>
                 <material name="white" />
             </visual>
             <collision>
                 <origin rpy="0 0 0" xyz="0 0 0" />
                 <geometry>
-	   	    <box size="0.01 0.01 0.01"/>
+	   	    <!-- <box size="0.01 0.01 0.01"/> -->
+                      <mesh filename="package://tenacity_description/meshes/brackets/Sonar_Bracket_${mount_point}.dae" />
                 </geometry>
             </collision>
             <xacro:solid_cuboid_inertial rpy="0 0 0" xyz="0 0 0" mass="0.150" x="0.06" y="0.05" z="0.05"/>

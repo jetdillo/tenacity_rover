@@ -640,22 +640,24 @@
 
      <!-- SensorStalk -->
      <xacro:oakd_link mount_point="main" /> 
-     <xacro:oakd_joint x="0.270" y="0.002" z="0.1850"  roll="0.00" pitch="0.00" yaw="0.00" mount_point="main"/>
+     <xacro:oakd_joint x="0.270" y="-0.002" z="0.1850"  roll="0.00" pitch="0.00" yaw="0.00" mount_point="main"/>
 
      <xacro:front_cover_link />
      <xacro:front_cover_joint x="0.150" y="0.00" z="-0.0180"  roll="0" pitch="0.00" yaw="0"/>
      <xacro:sensor_stalk_link /> 
-     <xacro:sensor_stalk_joint x="0.2280" y="0.005" z="0.0320" /> 
+     <xacro:sensor_stalk_joint x="0.2280" y="-.005" z="0.0320" /> 
  
      <!-- Sonar Sensor -->
      <xacro:sonar_link mount_point="cliff"/>
      <xacro:sonar_joint x="0.230" y="0.005" z="-0.0320" roll="0.00" pitch="0.4" yaw="0.00" mount_point="cliff"/>
      
      <xacro:sonar_link mount_point="left"/>
-     <xacro:sonar_joint x="0.285" y="0.2559" z="0.0180" roll="0.00" pitch="0" yaw="0.65" mount_point="left"/>
+     <!-- <xacro:sonar_joint x="0.285" y="0.2559" z="0.0180" roll="0.00" pitch="0" yaw="0.65" mount_point="left"/> -->
+     <xacro:sonar_joint x="0.280" y="0.2300" z="-0.0090" roll="0.00" pitch="0" yaw="1.57" mount_point="left"/> 
      
      <xacro:sonar_link mount_point="right"/>
-     <xacro:sonar_joint x="0.285" y="-0.2559" z="0.0180" roll="0.00" pitch="0" yaw="-0.65" mount_point="right"/>
+     <!-- <xacro:sonar_joint x="0.280" y="-0.2300" z="-0.0090" roll="0.00" pitch="0" yaw="-0.65" mount_point="right"/> -->
+     <xacro:sonar_joint x="0.285" y="-0.2300" z="0.0090" roll="0.00" pitch="0" yaw="1.828" mount_point="right"/>
 
      <!-- Hazard Cameras --> 
      <!--     <xacro:hazcam_link mount_point="left"/> -->
