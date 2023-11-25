@@ -20,10 +20,11 @@
         name="steering_corner_twist">
      </node>
 
-
+ <!-- Deprecated. We don't need a /joy node with the iFlySky controller
     <!-- start teleop_twist interface -->
     <include file="$(find teleop_twist_joy)/launch/teleop.launch">
     </include>
+   -->
     
     <include file="$(find my_dynamixel_tutorial)/controller_manager.launch">
     </include>
@@ -45,8 +46,8 @@
     <!-- start current monitor node for motor and compute INA260s -->
     <!-- uncomment baud and tty name for serial version -->
     <include file="$(find ros_battery_monitor)/launch/current_monitor.launch">
-  <!--  <arg name="port" value="/dev/ina"/> -->
     <arg name="bus" value="compute" />
+  <!--  <arg name="port" value="/dev/ina"/> -->
   <!--  <arg name="baud" value="57600" /> -->
     </include>
 
