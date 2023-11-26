@@ -1,7 +1,0 @@
-<launch>
-<group>
-   <machine name="nanotyrannus" address="10.42.10.2" user="armadilo" env-loader="/home/armadilo/catkin_ws/devel/remote_env_loader.sh" default="true" /> -->
-    <machine name="nanotyrannus" address="10.42.10.2" user="armadilo" env-loader="/home/armadilo/catkin_ws/devel/remote_env_loader.sh" default="true" />
-    <include file="$(find depthai_examples)/launch/yolov4_publisher.launch" />
-  </group>
-</launch>
