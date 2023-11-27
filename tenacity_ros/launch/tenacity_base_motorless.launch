@@ -20,12 +20,6 @@
         name="steering_corner_twist">
      </node>
 
- <!-- Deprecated. We don't need a /joy node with the iFlySky controller
-    <!-- start teleop_twist interface -->
-    <include file="$(find teleop_twist_joy)/launch/teleop.launch">
-    </include>
-   -->
-    
     <include file="$(find tenacity_steering)/controller_manager.launch">
     </include>
     
@@ -43,14 +37,6 @@
     <arg name="port" value="/dev/microstrain"/>
     </include> 
 
-    <!-- start current monitor node for motor and compute INA260s -->
-    <!-- uncomment baud and tty name for serial version -->
-    <include file="$(find ros_battery_monitor)/launch/current_monitor.launch">
-    <arg name="bus" value="compute" />
-  <!--  <arg name="port" value="/dev/ina"/> -->
-  <!--  <arg name="baud" value="57600" /> -->
-    </include>
-
    <!-- start optical flow from OpenMV Cam -->
    <include file="$(find openmv_flow)/launch/openmv_flow.launch">
    </include>
@@ -58,10 +44,8 @@
     <!-- start watchdog manager to monitor alert states -->
     <include file="$(find tenacity_watchdog_manager)/launch/watchdog_manager.launch"> 
     </include>
-   <include file="$(find rasbotix_sonar)/launch/hcs_sonar_node.launch">
-   <!-- <arg name="port" value="tcp"/> --> 
-   <!-- <arg name="port" value="/dev/range" /> -->
-   <!-- <arg name="baud" value="57600" /> -->
+   <!-- start sonars from octosonar board -->
+   <include file="$(find ros_octosonar)/launch/ros_octosonar.launch">
    </include>
 
 </launch>

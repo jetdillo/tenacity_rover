@@ -1,0 +1,13 @@
+<!-- Bringup the robot's base controller
+ Teleop and sensor nodes are in _motorless
+ motors and steering are in _motors
+-->
+<launch>
+    <!-- start the base nodes --> 
+    <include file="$(find tenacity_ros)/launch/tenacity_base_motorless.launch">
+    </include>
+    
+    <!-- Rovers, start your engines! -->
+    <include file="$(find tenacity_ros)/launch/tenacity_base_motors.launch">
+    </include>
+</launch>
