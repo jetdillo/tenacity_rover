@@ -1,6 +1,7 @@
 #include <IBusBM.h>
 #include <stdlib.h>
 #include <SPI.h>
+#include "Adafruit_VL53L0X.h"
 
 //motor control for Tenacity using the VNH5019 with an FS-16X RC Controller 
 //Using the VNH5019 Motor Shield Library and IBus Library
@@ -14,8 +15,8 @@
 //   Channel 5 - Turn-in-place toggle. Up TIP mode is disabled, down enabled. 
 //   Channel 6 - mastcam pan
 //   Channel 7 - mastcam tilt
-//   Channel 8 - Autonomy mode - Up for disabled, down for enabled
-//   Channel 9 - "Reserved for Future Expansion" 
+//   Channel 8 - Fault Toggle. run - middle up - ACK down - do clearing action 
+//   Channel 9 - Autonomy Mode  
 
 
 #include <ros.h>
@@ -29,11 +30,9 @@
 #include <std_msgs/Float64.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
+#include <sensor_msgs/Range.h>
 
 #include "DualVNH5019MotorShield.h"
-
-geometry_msgs::TransformStamped t;
-tf::TransformBroadcaster broadcaster;
 
 #define encoder_1_A 38    
 #define encoder_1_B 40
@@ -41,11 +40,11 @@ tf::TransformBroadcaster broadcaster;
 #define encoder_2_A 42
 #define encoder_2_B 44
     
-#define encoder_4_A 21
-#define encoder_4_B 20
+#define encoder_4_A 25 //21
+#define encoder_4_B 24 //20
     
-#define encoder_3_A 19
-#define encoder_3_B 18
+#define encoder_3_A 23 //19
+#define encoder_3_B 22 //18
     
 #define SPEED_MIN 50
 #define SPEED_CRUISE 150
@@ -79,7 +78,10 @@ tf::TransformBroadcaster broadcaster;
     unsigned long e3b_ts;
     unsigned long e4a_ts;
     unsigned long e4b_ts;
-    
+
+geometry_msgs::TransformStamped t;
+tf::TransformBroadcaster broadcaster;
+
 ros::NodeHandle nh;
 
 //std_msgs::String tip_state_msg;
@@ -93,10 +95,16 @@ std_msgs::Float64 tilt_cmd_msg;
 
 const geometry_msgs::Twist vel_msg;
 
+sensor_msgs::Range vlx_range;
+
+float cliff_max = 0.60;
+
 volatile long left_ticks=0;
 volatile long right_ticks=0;
 
 DualVNH5019MotorShield md;
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+
 IBusBM IBus; // IBus object for receivig signals from transmitter/receiver
 
 //ros::Subscriber<geometry_msgs::Twist> sub_twist("cmd_vel", TwistCb); 
@@ -109,6 +117,7 @@ ros::Publisher fsi_pub("flysky",&fsi_msg);
 ros::Publisher left_enc_pub("left_ticks",&left_ticks_out);
 ros::Publisher right_enc_pub("right_ticks",&right_ticks_out);
 ros::Publisher tilt_pub("mastcam_tilt_controller/command",&tilt_cmd_msg);
+ros::Publisher vlx_pub("vlx/front_cliff",&vlx_range);
 
 void left_enc_Cb() {
    
@@ -150,12 +159,18 @@ void setup() {
    attachInterrupt(digitalPinToInterrupt(encoder_3_A),left_enc_Cb,RISING);
    attachInterrupt(digitalPinToInterrupt(encoder_4_A),right_enc_Cb,RISING);
 
+  vlx_range.radiation_type=sensor_msgs::Range::INFRARED;
+  vlx_range.field_of_view = 0.44; //25 degrees
+  vlx_range.min_range = 0.03;
+  vlx_range.max_range = 8.20; 
+
     nh.initNode();    
     nh.advertise(left_enc_pub);
     nh.advertise(right_enc_pub);
     nh.advertise(drive_pub);
     nh.advertise(fsi_pub);
     nh.advertise(tilt_pub);
+    nh.advertise(vlx_pub);
     md.init(); 
 
     //Serial.begin(115200);
@@ -163,6 +178,9 @@ void setup() {
     // Init iBus 
     IBus.begin(Serial2);    // iBUS connected to Serial2
                                 // but only uses pin 17(RX)
+    //Start VLX cliff sensor
+    lox.begin();
+
  }
  
  //We make direct calls to manipulate the motors for speed
@@ -187,10 +205,11 @@ void setup() {
      float mastcam_tilt=0.0;
      float mastcam_pan=0.0;
 
+     float vlx_cliff_range=0.0;
+
      int tip_dir=0;
      int tip_state=0;
-     
-          
+           
    //  long leftTick,rightTick;
 
     //  drive_speed = twist_linear * SPEED_FAST;
@@ -205,7 +224,16 @@ void setup() {
     //mastcam channels
       rcval_pan = readChannel(8,-60,60,0);
       rcval_tilt = readChannel(9,-60,60,0);
-      
+
+    // read VLX for cliff state
+    VL53L0X_RangingMeasurementData_t measure;
+    lox.rangingTest(&measure, false); 
+  
+    if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+       vlx_cliff_range = measure.RangeMilliMeter;
+       vlx_range.range = measure.RangeMilliMeter/1000.0f;
+    }
+
    //Drive Speed is a direct map between IBUS controller values and VNH Controller values
    //Not relying on /joy value translation
       
@@ -227,7 +255,7 @@ void setup() {
    }
    //Check to see if Drive Safety has been engaged
    //Flipping this up should cut the motors immediately. 
-   if (rcval_safety == 1) { 
+   if ( (rcval_safety == 1) and (vlx_range.range < cliff_max)) { 
       md.setM1Speed(drive_speed);
       md.setM2Speed(drive_speed);
    } else {
@@ -291,6 +319,8 @@ void setup() {
       fsi_pub.publish(&fsi_msg);
 
       tilt_pub.publish(&tilt_cmd_msg);
+
+      vlx_pub.publish(&vlx_range);
        
        nh.spinOnce();
 }
