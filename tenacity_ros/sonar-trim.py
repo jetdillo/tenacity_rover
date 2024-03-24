@@ -7,14 +7,15 @@ from sensor_msgs.msg import Joy
 from sensor_msgs.msg import Range
 from dynamixel_msgs.msg import JointState
 
-#Generic steering interface for non-teleop nodes to control the Dynamixels that control the corner steering.
-#Reads off /cmd_vel like a normal control interface and publishes those values to 
+#subscribes to /cmd_vel and processes angular_vel data out to dynamixels for corner steering. 
 
 steer_min=205
 steer_max=815
 
 steer_state={}
+
 steer_topic=''
+
 steer_mode=0
 
 class Wander:
@@ -30,23 +31,28 @@ class Wander:
       self.throttle=0
       self.max_speed=0.5
 
+      #self.outer_range=rospy.get_param("/fwd_ranger_params/outer_range")
+      #self.warn_range=rospy.get_param("/fwd_ranger_params/warn_range")
+      #self.critical_range=rospy.get_param("/fwd_ranger_params/critical_range")
+      
       self.outer_range=1.00 
       self.warn_range=0.4
-      self.critical_range=0.15
+      self.critical_range=0.25
 
       rospy.init_node("sonar_trim")
 
       self.sonar=['/ultrasound/forward_left','/ultrasound/forward_right']
-      self.cliff='/vlx/front_cliff'
+      self.cliff='/vlx/forward_cliff'
 
-      rospy.Subscriber(self.sonar[0],Range,self.front_left_sonar_cb)
-      rospy.Subscriber(self.sonar[1],Range,self.front_right_sonar_cb)
-      rospy.Subscriber(self.cliff,Range,self.cliff_cb)
 
       if not 'ackerman' in rospy.get_published_topics():
          steer_topic='/cmd_vel'
       else:
          steer_topic='/ackermann_drive_controller/cmd_vel'
+
+      rospy.Subscriber(self.sonar[0],Range,self.forward_left_sonar_cb)
+      rospy.Subscriber(self.sonar[1],Range,self.forward_right_sonar_cb)
+      rospy.Subscriber(self.cliff,Range,self.cliff_cb)
 
       rospy.Subscriber(steer_topic,Twist,self.cmd_vel_cb)
          
@@ -56,12 +62,12 @@ class Wander:
       self.twist.linear.x = data.linear.x
       self.twist.angular.z = data.angular.z
       
-   def front_left_sonar_cb(self,data):
+   def forward_left_sonar_cb(self,data):
       r=Range()
       r=data
       self.sonar_range['forward_left']=r.range
    
-   def front_right_sonar_cb(self,data):
+   def forward_right_sonar_cb(self,data):
       r=Range()
       r=data
       self.sonar_range['forward_right']=r.range
@@ -75,7 +81,7 @@ class Wander:
       t=Twist() 
       rate= rospy.Rate(1)
       while (not rospy.is_shutdown()):
-         front_newpos=0
+         forward_newpos=0
          rear_newpos=0 
          
          if self.sonar_wander:
@@ -86,36 +92,31 @@ class Wander:
 
                sonar_diff = abs(self.sonar_range['forward_left'] - self.sonar_range['forward_right'])
                print("cliff_flag=%s sonar_diff=%s forward_left=%s,forward_right=%s" % (self.cliff_flag,sonar_diff,self.sonar_range['forward_left'],self.sonar_range['forward_right']))
-               if self.sonar_range['forward_left'] > 0.01 and self.sonar_range['forward_right'] > 0.01:
-
-                  if self.sonar_range['forward_left'] < self.critical_range and                      self.sonar_range['forward_right'] < self.critical_range:
-                        t.angular.z = 0.0
-                        t.linear.x = -0.25
-                        self.drive.publish(t)  
-                        rospy.loginfo("BACK UP")
-
+               if sonar_diff > 0.25:
+                  if self.sonar_range['forward_left'] > self.sonar_range['forward_right']:
+                     rospy.loginfo("LEFT TURN")
+                     t.angular.z=-0.1
+                  if self.sonar_range['forward_right'] > self.sonar_range['forward_left']:
+                     t.angular.z =0.1  
+                     rospy.loginfo("RIGHT TURN")
+               else:
                   if self.sonar_range['forward_left'] < self.critical_range:
-                        t.angular.z =-0.3
-                        t.linear.x=self.twist.linear.x
-                        self.drive.publish(t)  
-                        rospy.loginfo("OBSTACLE LEFT - RIGHT TURN")
+                     t.angular.z =-0.3
+                     rospy.loginfo("OBSTACLE LEFT - RIGHT TURN")
                   
-                  if self.sonar_range['forward_right'] < self.critical_range:
-                        t.angular.z =0.3
-                        t.linear.x=self.twist.linear.x
-                        self.drive.publish(t)  
-                        rospy.loginfo("OBSTACLE RIGHT - LEFT TURN")
-                  #else:
-                  #      t.angular.z = self.twist.angular.z
-                  #      t.linear.x=self.twist.linear.x
+                  elif self.sonar_range['forward_right'] < self.critical_range:
+                     t.angular.z =0.3
+                     rospy.loginfo("OBSTACLE RIGHT - LEFT TURN")
+                  else:
+                     t.angular.z = self.twist.angular.z
 
-               #t.linear.x=self.twist.linear.x
-               #self.drive.publish(t)  
+               t.linear.x=self.twist.linear.x
+               self.drive.publish(t)  
             #Otherwise a cliff_alarm has been triggered. 
             else:
                t=Twist()
                self.drive.publish(t)           
-               rospy.sleep(1)       
+                      
 if __name__ == '__main__':
 
    w = Wander()

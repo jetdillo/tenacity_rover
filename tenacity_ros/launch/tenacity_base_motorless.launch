@@ -23,7 +23,8 @@
     <include file="$(find tenacity_steering)/controller_manager.launch">
     </include>
     
-    <include file="$(find tenacity_steering)/start_tilt_controller.launch">
+    <!--<include file="$(find tenacity_steering)/start_tilt_controller.launch"> -->
+    <include file="$(find tenacity_steering)/start_steering_controller.launch">
     </include>
 
     <!--bring up a robot_description and robot_state_publisher for navigation and localization -->

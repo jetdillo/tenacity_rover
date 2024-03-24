@@ -17,6 +17,8 @@ steer_max=815
 
 steer_state={}
 
+steer_drift={}
+
 class Trim:
 
    def __init__(self):
@@ -28,6 +30,12 @@ class Trim:
       self.jss = JointState_SM()
       self.od_msg = OpticalDrift()
       rospy.init_node("corner_steering_trim")
+
+      self.cam_angular_res=rospy.get_param("/openmv_flow/angular_resolution")
+      self.cam_focal_len=rospy.get_param("/openmv_flow/effective_focal_length")
+      self.cam_mount_height=rospy.get_param("/openmv_flow/camera_mounting_height")
+      self.angular_drift=0
+
       rospy.Subscriber("/cmd_vel",Twist,self.cmd_vel_cb)
       rospy.Subscriber("/joy", Joy, self.joy_cb)
 
@@ -108,14 +116,18 @@ class Trim:
                front_newpos = (self.twist.angular.z * 1.5757)*-1
                rear_newpos = front_newpos *-1 
             else:
-               #We're drifting, calculate how much to turn to get us back on course
-               #Figure out actual values but guess for now. 
+                if (abs(self.od_msg.xdiff) > 0.1) : 
+            #We're drifting, calculate how much to turn to get us back on course
                #Left drift is negative, right drift is positive. 
                ##Left Z is positive, right Z is negative
+                   angular_drift=self.od_msg.xdiff *self.cam_angular_res 
+                   linear_drift=(self.cam_focal_len * tan(angular_drift)) - self.cam_mount_height
 
-               rospy.loginfo("Steering Drift Detected: %s",self.od_msg)
+                   rospy.loginfo("Steering Drift Detected:")
+                   rospy.loginfo("xdiff %s",self.od_msg.xdiff)
+                   rospy.loginfo("linear_drift %s",linear_drift)
+
             #print("front_newpos=%f rear_newpos=%f") % (front_newpos,rear_newpos) 
-
             self.front_left_sp.publish(front_newpos)
             self.front_right_sp.publish(front_newpos)
             self.rear_left_sp.publish(rear_newpos)

@@ -105,7 +105,9 @@ class CamCtl:
 
 
 #  subscribe to Dynamixel channel to get list of servos
-#  There should be 4 IDs: 1,2,5,6
+#  There should be 4 steering IDs: 1,2,5,6
+#  One Pan ID: ?
+#  One Tilt ID: 7
 #  We need to error out of there are less or if the IDs are different
 #  Is there a way to verify a topic exists ?
 

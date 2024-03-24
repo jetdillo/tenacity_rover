@@ -27,51 +27,14 @@ class CamCtl:
       self.pan_state=JointState_DM()
       self.tilt_state=JointState_DM()
       rospy.init_node("mastcam_ctl")
-      rospy.Subscriber("/joy", Joy, self.joy_cb)
+      #rospy.Subscriber("/joy", Joy, self.joy_cb)
 
-      rospy.Subscriber('/mastcam_pan/controller/state',JointState_DM,self.pan_state_cb)
+      rospy.Subscriber('/mastcam_pan_controller/state',JointState_DM,self.pan_state_cb)
       rospy.Subscriber('/mastcam_tilt_controller/state',JointState_DM,self.tilt_state_cb)
 
       self.pan_sp=rospy.Publisher('/mastcam_pan_controller/command',Float64,queue_size=1)
       self.tilt_sp=rospy.Publisher('/mastcam_tilt_controller/command',Float64,queue_size=1)
 
-   def joy_cb(self,data):
-
-      #self.pan_rate=data.axes[3]
-      #self.tilt_rate=data.axes[4]
-   
-      #print(data.buttons)
-      if data.buttons[7] == 1:
-         self.cam_mode=1
-         print("Setting home mode for mastcam")
-      else:
-         self.cam_mode=0
-     
-      if data.buttons[0] == 1:
-         self.tilt_rate=-0.1
-         self.pan_rate=0.0
-         print("tilt down current_pan=%f current_tilt=%f new_pan=%f new_tilt=%f" %(self.pan_state.current_pos,self.tilt_state.current_pos,self.pan_newpos,self.tilt_newpos))
-         return
-      elif data.buttons[3] == 1:
-         self.tilt_rate=0.1
-         self.pan_rate=0.0
-         print("tilt up current_pan=%f current_tilt=%f new_pan=%f new_tilt=%f" %(self.pan_state.current_pos,self.tilt_state.current_pos,self.pan_newpos,self.tilt_newpos))
-         return
-
-      elif data.buttons[2] == 1:
-         self.pan_rate=0.1
-         print("pan left current_pan=%f current_tilt=%f new_pan=%f new_tilt=%f" %(self.pan_state.current_pos,self.tilt_state.current_pos,self.pan_newpos,self.tilt_newpos))
-         return
-
-      elif data.buttons[1] == 1:
-         self.pan_rate=-0.1
-         print("pan right current_pan=%f current_tilt=%f new_pan=%f new_tilt=%f" %(self.pan_state.current_pos,self.tilt_state.current_pos,self.pan_newpos,self.tilt_newpos))
-         return
-
-      else: 
-         self.pan_rate=0.0
-         self.tilt_rate=0.0
-   
    def pan_state_cb(self,data):
 
        self.pan_state=data 

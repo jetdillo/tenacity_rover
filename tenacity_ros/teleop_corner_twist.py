@@ -24,7 +24,7 @@ class Corner:
       self.jss = JointState_SM()
       rospy.init_node("corner_steering_ctl")
       rospy.Subscriber("/cmd_vel",Twist,self.cmd_vel_cb)
-      rospy.Subscriber("/joy", Joy, self.joy_cb)
+      #rospy.Subscriber("/joy", Joy, self.joy_cb)
       #We have 4 named steering controllers, create subscribers and publishers for them 
 
       self.jss.name=self.steer_controllers=['front_left','front_right','rear_left','rear_right']
@@ -35,11 +35,11 @@ class Corner:
       for s in self.steer_controllers:
          self.steer_state[s]=0.0
 
-      print(self.jss.name)
+      #print(self.jss.name)
 
       for s in self.steer_controllers:
          steer_topic_str=s+"_controller/state"
-         print steer_topic_str
+         #print steer_topic_str
          rospy.Subscriber(steer_topic_str,JointState_DM,self.steering_state_cb)
 
       self.front_left_sp=rospy.Publisher('/front_left_controller/command',Float64,queue_size=1)
@@ -50,6 +50,8 @@ class Corner:
       self.js_repub=rospy.Publisher('joint_states',JointState_SM,queue_size=1)
 
    def cmd_vel_cb(self,data):
+      #We just deal with data.angular here because the data.linear values
+      #are consumed inside the motor controller code 
       self.twist.angular.z = data.angular.z
       
       #print self.twist.angular.z
@@ -90,7 +92,7 @@ class Corner:
       self.steer_state[js.name]=js.current_pos
 
       for jp in self.jss.name:
-         print(jp)
+         #print(jp)
          jsp.append(self.steer_state[jp])
       
       for j in range(0,len(jsp)):
@@ -140,4 +142,3 @@ if __name__ == '__main__':
 
    cs_node = Corner()
    cs_node.run()
-
