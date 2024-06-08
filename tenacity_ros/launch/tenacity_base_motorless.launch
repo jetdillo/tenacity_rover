@@ -42,11 +42,12 @@
    <include file="$(find openmv_flow)/launch/openmv_flow.launch">
    </include>
 
-    <!-- start watchdog manager to monitor alert states -->
-    <include file="$(find tenacity_watchdog_manager)/launch/watchdog_manager.launch"> 
-    </include>
    <!-- start sonars from octosonar board -->
    <include file="$(find ros_octosonar)/launch/ros_octosonar.launch">
+   </include>
+
+   <!-- start INA power monitor node -->
+   <include file="$(find ros_ina)/launch/ros_power_monitor.launch">
    </include>
 
 </launch>

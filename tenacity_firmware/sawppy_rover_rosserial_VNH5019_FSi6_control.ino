@@ -45,6 +45,8 @@
     
 #define encoder_3_A 23 //19
 #define encoder_3_B 22 //18
+
+#define TELEOP_STATUS 52
     
 #define SPEED_MIN 50
 #define SPEED_CRUISE 150
@@ -159,6 +161,10 @@ void setup() {
    attachInterrupt(digitalPinToInterrupt(encoder_3_A),left_enc_Cb,RISING);
    attachInterrupt(digitalPinToInterrupt(encoder_4_A),right_enc_Cb,RISING);
 
+   pinMode(TELEOP_STATUS,OUTPUT);
+
+   digitalWrite(TELEOP_STATUS,LOW);
+
   vlx_range.radiation_type=sensor_msgs::Range::INFRARED;
   vlx_range.field_of_view = 0.44; //25 degrees
   vlx_range.min_range = 0.03;
@@ -220,7 +226,7 @@ void setup() {
       rcval_z = readChannel(0,-60,60,0);
       rcval_safety=readSwitch(4,false);
       tip_state = readSwitch(6,false);
-
+      
     //mastcam channels
       rcval_pan = readChannel(8,-60,60,0);
       rcval_tilt = readChannel(9,-60,60,0);
@@ -228,11 +234,20 @@ void setup() {
     // read VLX for cliff state
     VL53L0X_RangingMeasurementData_t measure;
     lox.rangingTest(&measure, false); 
-  
+    
+    if(rcval_safety == 1) { 
+       digitalWrite(TELEOP_STATUS,HIGH);      
+    } else {
+       digitalWrite(TELEOP_STATUS,LOW);
+    }
+      
     if (measure.RangeStatus != 4) {  // phase failures have incorrect data
        vlx_cliff_range = measure.RangeMilliMeter;
        vlx_range.range = measure.RangeMilliMeter/1000.0f;
     }
+    //Publish cliff sensor data constantly 
+    
+    vlx_pub.publish(&vlx_range);
 
    //Drive Speed is a direct map between IBUS controller values and VNH Controller values
    //Not relying on /joy value translation
@@ -255,13 +270,14 @@ void setup() {
    }
    //Check to see if Drive Safety has been engaged
    //Flipping this up should cut the motors immediately. 
-   if ( (rcval_safety == 1) and (vlx_range.range < cliff_max)) { 
+   if (rcval_safety == 1) {
+     if (vlx_range.range < cliff_max) { 
       md.setM1Speed(drive_speed);
       md.setM2Speed(drive_speed);
-   } else {
-    md.setM1Speed(0);
-      md.setM2Speed(0);
-   }
+     } else {
+       md.setM1Speed(0);
+       md.setM2Speed(0);
+     }
   
 //Check for turn-in-place flag 
        if (drive_speed == 0) {
@@ -319,12 +335,11 @@ void setup() {
       fsi_pub.publish(&fsi_msg);
 
       tilt_pub.publish(&tilt_cmd_msg);
-
-      vlx_pub.publish(&vlx_range);
        
        nh.spinOnce();
-}
-
+   }
+ }
+ 
 int readChannel(byte channelInput, int minLimit, int maxLimit, int defaultValue) {
   uint16_t ch = IBus.readChannel(channelInput);
   if (ch < 100) return defaultValue;
