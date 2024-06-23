@@ -121,9 +121,9 @@ class yoloFollower:
 
          if len(self.sda.detections) >0:
             for d in self.sda.detections:
-                #rospy.loginfo("results ID=%d",d.results[0].id)
+                rospy.loginfo("results ID=%d",d.results[0].id)
                 if d.results[0].id == 0:
-                   #rospy.loginfo("Detected Human!")
+                   rospy.loginfo("Detected Human!")
                    x_center=d.bbox.center.x
                    y_center=d.bbox.center.y
                    xsize=d.bbox.size_x 

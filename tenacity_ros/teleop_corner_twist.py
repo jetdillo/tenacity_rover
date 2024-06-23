@@ -98,6 +98,29 @@ class Corner:
       for j in range(0,len(jsp)):
          self.jss.position[j]=jsp[j]
 
+   def exercise(self,exer_count):
+      angles=[0.64,-0.64]
+      #dir=[1,-1]
+      for p in range(0,exer_count):
+
+          leftside=angles[0]
+          rightside=angles[1]
+         
+          self.front_left_sp.publish(leftside)
+          self.front_right_sp.publish(rightside)
+          self.rear_left_sp.publish(leftside)
+          self.rear_right_sp.publish(rightside)
+          
+          time.sleep(2)
+          
+          leftside=angles[1]
+          rightside=angles[0]
+
+          self.front_left_sp.publish(leftside)
+          self.front_right_sp.publish(rightside)
+          self.rear_left_sp.publish(leftside)
+          self.rear_right_sp.publish(rightside)
+
    def run(self): 
       rate= rospy.Rate(1)
       while (not rospy.is_shutdown()):
@@ -133,12 +156,9 @@ class Corner:
             self.rear_right_sp.publish(right_rear_pos)
             time.sleep(1)
 
-#  subscribe to Dynamixel channel to get list of servos
-#  There should be 4 IDs: 1,2,5,6
-#  We need to error out of there are less or if the IDs are different
-#  Is there a way to verify a topic exists ?
-
 if __name__ == '__main__':
 
    cs_node = Corner()
+   cs_node.exercise(2)
+   time.sleep(2)
    cs_node.run()

@@ -8,29 +8,14 @@ from sensor_msgs.msg import Imu
 class Tilt:
 
    def __init__(self):
+
+       self.power_bus=['main_bus_A','main_bus_B']
+       self.power_topics=['bus_voltage','bus_power','current']
+
+       for b in self.power_bus:
+           power_topic_str="power/"+b+"/"+
+           rospy.
    
-   def watch_rpy(self):
-      
-      newpos=0
-      
-      if (self.twist.angular.z !=0): 
-         newpos = self.twist.angular.z * 1.5757
-      else:
-         newpos = 0
-       
-      return newpos
- 
-   #Publish steer_angle to the front servos
-   #Publish the mirror of steer_angle to the rear ones
-
-   def steering_state_cb(self,data):
-
-      js=JointState()
-      js.name=data.name
-      js.motor_ids=data.motor_ids
-      js.current_pos=data.current_pos
-      self.steer_state[js.motor_ids[0]]=js
-
    def run(self): 
       rate= rospy.Rate(1)
       while (not rospy.is_shutdown()):

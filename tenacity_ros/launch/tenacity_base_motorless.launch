@@ -14,16 +14,15 @@
      </node>
 
     <!-- start trim_steering node --> 
-    <node 
+<!--    <node 
         pkg="tenacity_ros"
         type="steering_corner_twist.py"
         name="steering_corner_twist">
      </node>
-
+-->
     <include file="$(find tenacity_steering)/controller_manager.launch">
     </include>
     
-    <!--<include file="$(find tenacity_steering)/start_tilt_controller.launch"> -->
     <include file="$(find tenacity_steering)/start_steering_controller.launch">
     </include>
 
@@ -42,12 +41,15 @@
    <include file="$(find openmv_flow)/launch/openmv_flow.launch">
    </include>
 
+    <!-- start watchdog manager to monitor alert states -->
+    <include file="$(find tenacity_watchdog_manager)/launch/watchdog_manager.launch"> 
+    </include>
    <!-- start sonars from octosonar board -->
    <include file="$(find ros_octosonar)/launch/ros_octosonar.launch">
    </include>
 
-   <!-- start INA power monitor node -->
+   <!-- start power monitors to watch over INA260s -->
    <include file="$(find ros_ina)/launch/ros_power_monitor.launch">
-   </include>
+   </include> 
 
 </launch>

@@ -17,9 +17,9 @@ class WatchdogManager():
       rospy.init_node('watchdog_manager')
       self.alarm_pub=rospy.Publisher('watchboard',Statboard,latch=True,queue_size=2)
       
-      #self.cliffsub = rospy.Subscriber('/cliff_state',Bool,cliff_state_cb)
+      self.cliffsub = rospy.Subscriber('/cliff_state',Bool,cliff_state_cb)
       self.attsub = rospy.Subscriber('/attitude_alarm',Tilt,self.att_state_cb)
-      #self.battsub = rospy.Subscriber('/batt_state',Bool,batt_state_cb)
+      self.battsub = rospy.Subscriber('/batt_state',Bool,batt_state_cb)
 
    def cliff_read_cb(self,data):
      
