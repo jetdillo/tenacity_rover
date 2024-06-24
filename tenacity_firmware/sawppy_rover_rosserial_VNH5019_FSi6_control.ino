@@ -8,15 +8,6 @@
 //Control flow gets flipped around 
 //Motor control goes right from FS-16 into VNH5019, skipping /joy & rosserial
 //Publish steering data into /cmd_vel and teleop_corner_twist.py will take care of the rest
-//Channels:
-//   Channel 0 - Right Stick lateral controls yaw
-//   Channel 2 - Left Stick Up/Down controls X(forward) velocity
-//   Channel 4 - Safety Switch. Motors are disabled in the up position, enabled with it down. 
-//   Channel 5 - Turn-in-place toggle. Up TIP mode is disabled, down enabled. 
-//   Channel 6 - mastcam pan
-//   Channel 7 - mastcam tilt
-//   Channel 8 - Fault Toggle. run - middle up - ACK down - do clearing action 
-//   Channel 9 - Autonomy Mode  
 
 
 #include <ros.h>
@@ -88,11 +79,12 @@ ros::NodeHandle nh;
 
 //std_msgs::String tip_state_msg;
 char tip_state_str[9]="inactive";
-char fsi_msg_str[20];
+char fsi_msg_str[80];
 
 std_msgs::Int32 left_ticks_out;
 std_msgs::Int32 right_ticks_out;
 std_msgs::String fsi_msg;
+std_msgs::Float64 pan_cmd_msg;
 std_msgs::Float64 tilt_cmd_msg;
 
 const geometry_msgs::Twist vel_msg;
@@ -119,6 +111,7 @@ ros::Publisher fsi_pub("flysky",&fsi_msg);
 ros::Publisher left_enc_pub("left_ticks",&left_ticks_out);
 ros::Publisher right_enc_pub("right_ticks",&right_ticks_out);
 ros::Publisher tilt_pub("mastcam_tilt_controller/command",&tilt_cmd_msg);
+ros::Publisher pan_pub("mastcam_pan_controller/command",&pan_cmd_msg);
 ros::Publisher vlx_pub("vlx/front_cliff",&vlx_range);
 
 void left_enc_Cb() {
@@ -176,6 +169,7 @@ void setup() {
     nh.advertise(drive_pub);
     nh.advertise(fsi_pub);
     nh.advertise(tilt_pub);
+    nh.advertise(pan_pub);
     nh.advertise(vlx_pub);
     md.init(); 
 
@@ -187,6 +181,14 @@ void setup() {
     //Start VLX cliff sensor
     lox.begin();
 
+    geometry_msgs::Twist start_tw;
+      start_tw.linear.x= 0.0;
+      start_tw.linear.y=0.0;
+      start_tw.linear.z=0.0;
+      
+      start_tw.angular.z= 0.0;
+      start_tw.angular.x= 0.0;
+      start_tw.angular.y= 0.0;
  }
  
  //We make direct calls to manipulate the motors for speed
@@ -205,6 +207,7 @@ void setup() {
      int rcval_x=0;
      int rcval_pan=0;
      int rcval_tilt=0;
+     int rcval_autonomy=0;
      
      float linear_x=0.0;
      float angular_z=0.0;
@@ -219,17 +222,26 @@ void setup() {
    //  long leftTick,rightTick;
 
     //  drive_speed = twist_linear * SPEED_FAST;
-    // Channel 0 - Right Stick lateral controls yaw
-    // Channel 2 - Left Stick Up/Down controls X(forward) velocity
+    //Channels:
+    //Channels on the controller are 1-based 
+    //   Channel 0 - Right Stick lateral controls yaw
+    //   Channel 2 - Left Stick Up/Down controls X(forward) velocity
+    //   Channel 4 - Safety Switch. Motors are disabled in the up position, enabled with it down. 
+    //   Channel 5 - Turn-in-place toggle. Up TIP mode is disabled, down enabled. 
+    //   Channel 8 - mastcam pan
+    //   Channel 9 - mastcam tilt
+    //   Channel 6 - Fault Toggle. run - middle up - ACK down - do clearing action 
+    //   Channel 7 - Autonomy Mode  
 
-      rcval_x = readChannel(2,-100,100,0);
       rcval_z = readChannel(0,-60,60,0);
-      rcval_safety=readSwitch(4,false);
-      tip_state = readSwitch(6,false);
+      rcval_x = readChannel(2,-100,100,0);
+      rcval_safety=readSwitch(4,false); //SWA
+      tip_state = readSwitch(5,false);  //SWB
       
     //mastcam channels
-      rcval_pan = readChannel(8,-60,60,0);
-      rcval_tilt = readChannel(9,-60,60,0);
+      rcval_pan = readChannel(8,-60,60,0);  //VRA dial
+      rcval_tilt = readChannel(9,-60,60,0); //VRB dial 
+      rcval_autonomy = readSwitch(7,false); //SWD
 
     // read VLX for cliff state
     VL53L0X_RangingMeasurementData_t measure;
@@ -257,9 +269,10 @@ void setup() {
    linear_x = rcval_x * 0.01;
    angular_z = rcval_z * 0.01;
 
+   mastcam_pan = rcval_pan *0.01;
    mastcam_tilt = rcval_tilt *0.01;
-   
    sprintf(fsi_msg_str,"%d %d %d %d %d",rcval_x,rcval_z,tip_state,rcval_tilt,rcval_safety);
+   //sprintf(fsi_msg_str,"Ch 0:%d Ch 2:%d Ch 8:%d Ch 9:%d Ch 4:%d Ch 5:%d Ch 7:%d",rcval_x,rcval_z,rcval_tilt,rcval_pan,rcval_safety,tip_state,rcval_autonomy);
    
    if (tip_state == 1) { 
        in_place = true;
@@ -275,6 +288,8 @@ void setup() {
       md.setM1Speed(drive_speed);
       md.setM2Speed(drive_speed);
      } else {
+       linear_x = 0.00;
+       //angular_z = 0.00;
        md.setM1Speed(0);
        md.setM2Speed(0);
      }
@@ -308,8 +323,17 @@ void setup() {
             md.setM2Speed(0);
            }
             delay(10);
-            nh.spinOnce();
+            //See if we can live without this
+            //Spin should happen at the bottom of the control loop
+            //nh.spinOnce();
        }
+   } else {
+           linear_x=0.00;
+           drive_speed=0.00;       
+   }
+     //make sure we publish motor topics outside of rcval check so we don't starve subscribers
+     //if we're in a safety condition, we should zero out the Twist message vs. not publishing
+     
        left_ticks_out.data=left_ticks;
        right_ticks_out.data=right_ticks;
        
@@ -328,6 +352,7 @@ void setup() {
       tw.angular.y= 0.0;
 
       tilt_cmd_msg.data=mastcam_tilt;
+      pan_cmd_msg.data=mastcam_pan;
 
       fsi_msg.data = fsi_msg_str;
       
@@ -335,9 +360,9 @@ void setup() {
       fsi_pub.publish(&fsi_msg);
 
       tilt_pub.publish(&tilt_cmd_msg);
+      pan_pub.publish(&pan_cmd_msg);
        
        nh.spinOnce();
-   }
  }
  
 int readChannel(byte channelInput, int minLimit, int maxLimit, int defaultValue) {
