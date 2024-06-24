@@ -1,0 +1,14 @@
+<launch>
+<include file="$(find ros_ina)/launch/ros_ina.launch">
+  <arg name="pwr_bus" value="main_bus_A" />
+   <arg name="i2c_address" value="0x40"/>
+   <arg name="i2c_bus" value="1"/>
+</include>
+
+<include file="$(find ros_ina)/launch/ros_ina.launch">
+  <arg name="pwr_bus" value="main_bus_B" />
+  <arg name="i2c_address" value="0x44"/>
+  <arg name="i2c_bus" value="1"/>
+</include>
+
+</launch>

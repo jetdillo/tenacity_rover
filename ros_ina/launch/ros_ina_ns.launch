@@ -1,0 +1,6 @@
+<arg name="pwr_bus"/>
+<group ns="$(arg pwr_bus)">
+     <include file="$(find ros_ina)/launch/ros_ina.launch">
+      <arg name="namespace" value="$(arg pwr_bus)" />
+     </include>
+</group>

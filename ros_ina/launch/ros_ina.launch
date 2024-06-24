@@ -1,0 +1,14 @@
+<launch>
+    <arg name="device_type" default="ina260"/>
+    <arg name="i2c_address" default="0x40"/>
+    <arg name="i2c_bus" default="1"/>
+    <arg name="pwr_bus" default="main_bus_A" />
+
+    <node pkg="ros_ina" type="ros_ina.py" name="ina_sensor_node" ns="$(arg pwr_bus)">
+
+        <param name="device_type" value="$(arg device_type)"/>
+        <param name="i2c_address" value="$(arg i2c_address)"/>
+        <param name="i2c_bus" value="$(arg i2c_bus)"/>
+<!--    <param name="pwr_bus" value="$(arg pwr_bus)"/> -->
+    </node>
+</launch>
