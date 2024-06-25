@@ -1,0 +1,14 @@
+<launch>
+<!-- Start tilt joint controller -->
+  <!--  <rosparam file="$(find tenacity_steering)/tilt.yaml" command="load"/> -->
+    <rosparam file="$(find tenacity_steering)/steering.yaml" command="load"/>
+    <node name="controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port pan_tilt_port
+                front_left_controller                       
+                front_right_controller
+                rear_left_controller
+                rear_right_controller
+                "
+          output="screen"/>
+</launch>

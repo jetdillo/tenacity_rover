@@ -8,14 +8,14 @@
 
     <!-- start corner_steering node -->
     <node 
-        pkg="tenacity_ros"
+        pkg="tenacity_steering"
         type="teleop_corner_twist.py"
         name="teleop_corner_twist">
      </node>
 
     <!-- start trim_steering node --> 
 <!--    <node 
-        pkg="tenacity_ros"
+        pkg="tenacity_steering"
         type="steering_corner_twist.py"
         name="steering_corner_twist">
      </node>
