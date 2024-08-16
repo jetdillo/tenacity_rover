@@ -89,7 +89,8 @@ std_msgs::Float64 tilt_cmd_msg;
 
 const geometry_msgs::Twist vel_msg;
 
-sensor_msgs::Range vlx_range;
+sensor_msgs::Range vlx_front;
+sensor_msgs::Range vlx_rear;
 
 float cliff_max = 0.60;
 
@@ -112,7 +113,10 @@ ros::Publisher left_enc_pub("left_ticks",&left_ticks_out);
 ros::Publisher right_enc_pub("right_ticks",&right_ticks_out);
 ros::Publisher tilt_pub("mastcam_tilt_controller/command",&tilt_cmd_msg);
 ros::Publisher pan_pub("mastcam_pan_controller/command",&pan_cmd_msg);
-ros::Publisher vlx_pub("vlx/front_cliff",&vlx_range);
+ros::Publisher vlx_front_pub("vlx/front_cliff",&vlx_front);
+ros::Publisher vlx_rear_pub("vlx/rear_cliff",&vlx_front);
+
+
 
 void left_enc_Cb() {
    
@@ -158,10 +162,10 @@ void setup() {
 
    digitalWrite(TELEOP_STATUS,LOW);
 
-  vlx_range.radiation_type=sensor_msgs::Range::INFRARED;
-  vlx_range.field_of_view = 0.44; //25 degrees
-  vlx_range.min_range = 0.03;
-  vlx_range.max_range = 8.20; 
+  vlx_front.radiation_type=sensor_msgs::Range::INFRARED;
+  vlx_front.field_of_view = 0.44; //25 degrees
+  vlx_front.min_range = 0.03;
+  vlx_front.max_range = 8.20; 
 
     nh.initNode();    
     nh.advertise(left_enc_pub);
@@ -170,7 +174,7 @@ void setup() {
     nh.advertise(fsi_pub);
     nh.advertise(tilt_pub);
     nh.advertise(pan_pub);
-    nh.advertise(vlx_pub);
+    nh.advertise(vlx_front_pub);
     md.init(); 
 
     //Serial.begin(115200);
@@ -239,8 +243,8 @@ void setup() {
       tip_state = readSwitch(5,false);  //SWB
       
     //mastcam channels
-      rcval_pan = readChannel(8,-60,60,0);  //VRA dial
-      rcval_tilt = readChannel(9,-60,60,0); //VRB dial 
+      rcval_pan = readChannel(8,-100,100,0);  //VRA dial
+      rcval_tilt = readChannel(9,-100,100,0); //VRB dial 
       rcval_autonomy = readSwitch(7,false); //SWD
 
     // read VLX for cliff state
@@ -255,11 +259,11 @@ void setup() {
       
     if (measure.RangeStatus != 4) {  // phase failures have incorrect data
        vlx_cliff_range = measure.RangeMilliMeter;
-       vlx_range.range = measure.RangeMilliMeter/1000.0f;
+       vlx_front.range = measure.RangeMilliMeter/1000.0f;
     }
     //Publish cliff sensor data constantly 
     
-    vlx_pub.publish(&vlx_range);
+    vlx_front_pub.publish(&vlx_front);
 
    //Drive Speed is a direct map between IBUS controller values and VNH Controller values
    //Not relying on /joy value translation
@@ -284,7 +288,7 @@ void setup() {
    //Check to see if Drive Safety has been engaged
    //Flipping this up should cut the motors immediately. 
    if (rcval_safety == 1) {
-     if (vlx_range.range < cliff_max) { 
+     if (vlx_front.range < cliff_max) { 
       md.setM1Speed(drive_speed);
       md.setM2Speed(drive_speed);
      } else {
@@ -292,6 +296,10 @@ void setup() {
        //angular_z = 0.00;
        md.setM1Speed(0);
        md.setM2Speed(0);
+       
+       //Continue to read data off the iBus and dump it on the floor while the cliff sensor is triggered.
+       readChannel(0,-60,60,0);
+       readChannel(2,-100,100,0);
      }
   
 //Check for turn-in-place flag 
