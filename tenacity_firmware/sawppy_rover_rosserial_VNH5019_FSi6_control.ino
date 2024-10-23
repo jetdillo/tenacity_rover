@@ -162,7 +162,7 @@ void right_enc_Cb() {
 }
 
 void vlx_remap_IDs() {
-  Serial.println("Reached setID");
+  Serial3.println("Reached setID");
   // all reset
   digitalWrite(SHT_LOX_FRONT, LOW);    
   digitalWrite(SHT_LOX_REAR, LOW);
@@ -179,11 +179,11 @@ void vlx_remap_IDs() {
   pinMode(SHT_LOX_FRONT,INPUT);
   // initing LOX1
   if(!lox_front.begin(LOX_FRONT_ADDRESS,true)) {
-    Serial.println(F("Failed to boot first VL53L0X"));
+    Serial3.println(F("Failed to boot first VL53L0X"));
     while(1);
   }
   delay(10);
-  Serial.println(F("Started first VL53L0X"));
+  Serial3.println(F("Started first VL53L0X"));
   delay(100);
   
   // activating LOX2
@@ -193,10 +193,10 @@ void vlx_remap_IDs() {
   pinMode(SHT_LOX_REAR,INPUT);
   //initing LOX2
   if(!lox_rear.begin(LOX_REAR_ADDRESS,true)) {
-    Serial.println(F("Failed to boot second VL53L0X"));
+    Serial3.println(F("Failed to boot second VL53L0X"));
     while(1);
   }
-    Serial.println(F("Started second VL53L0X"));
+    Serial3.println(F("Started second VL53L0X"));
     delay(100);
 }
 
@@ -217,6 +217,24 @@ void setup() {
 
    digitalWrite(TELEOP_STATUS,LOW);
 
+   //Start Serial interfaces early
+   //Serial.begin(115200);
+   Serial.begin(57600);
+    //debug serial 
+   Serial3.begin(115200);
+   // Init iBus 
+   IBus.begin(Serial2);    // iBUS connected to Serial2
+                            // but only uses pin 17(RX)
+  pinMode(SHT_LOX_FRONT, OUTPUT);
+  pinMode(SHT_LOX_REAR, OUTPUT);
+
+  Serial.println("Shutdown pins on VLX triggered");
+
+  digitalWrite(SHT_LOX_FRONT, LOW);
+  digitalWrite(SHT_LOX_REAR, LOW);
+
+  Serial.println("Both in reset mode...(pins are low)");
+  
    //VLX sensors come with the same I2C address by default, so we have to remap those. 
    vlx_remap_IDs();
 
@@ -244,14 +262,6 @@ void setup() {
     nh.advertise(vlx_front_pub);
     nh.advertise(vlx_rear_pub);
     md.init(); 
-
-      Serial.begin(115200);
-    //debug serial 
-      Serial3.begin(115200);
-    //Serial.begin(57600);
-    // Init iBus 
-    IBus.begin(Serial2);    // iBUS connected to Serial2
-                            // but only uses pin 17(RX)
      
     geometry_msgs::Twist start_tw;
       start_tw.linear.x= 0.0;
@@ -340,7 +350,7 @@ void setup() {
     }
     
     //Publish cliff sensor data constantly 
-    sprintf(vlx_msg_str,"vlx_front:%f vlx_rear:%f",vlx_front_msg.range,vlx_rear_msg.range);
+   // sprintf(vlx_msg_str,"vlx_front:%f vlx_rear:%f",vlx_front_msg.range,vlx_rear_msg.range);
     vlx_front_pub.publish(&vlx_front_msg);
     vlx_rear_pub.publish(&vlx_rear_msg);
 
@@ -357,12 +367,11 @@ void setup() {
    sprintf(fsi_msg_str,"%d %d %d %d %d",rcval_x,rcval_z,tip_state,rcval_tilt,rcval_safety);
    Serial3.print("FSI:");
    Serial3.println(fsi_msg_str);
-   Serial3.print("VLX:");
-   Serial3.println(vlx_msg_str);
+   Serial3.print("VLX: vlx_front:");
+   Serial3.print(vlx_front_range);
+   Serial3.print("vlx_rear:");
+   Serial3.println(vlx_rear_range);
 
-   
-  // Serial3.println("VLX:%s",vlx_msg_str);
-   
    if (tip_state == 1) { 
        in_place = true;
        tip_dir = readSwitch(7,false);
