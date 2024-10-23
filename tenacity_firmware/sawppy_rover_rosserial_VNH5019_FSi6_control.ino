@@ -9,6 +9,7 @@
 //Motor control goes right from FS-16 into VNH5019, skipping /joy & rosserial
 //Publish steering data into /cmd_vel and teleop_corner_twist.py will take care of the rest
 
+//The VL53L0X sensors are used for cliff detection
 
 #include <ros.h>
 #include <ros/time.h>
@@ -43,6 +44,14 @@
 #define SPEED_CRUISE 150
 #define SPEED_FAST 250
 #define SPEED_MAX 400
+
+// define SHUT pins for VLX sensors
+#define SHT_LOX_FRONT 6
+#define SHT_LOX_REAR 7
+
+//define I2C addresses for the VLX sensors
+#define LOX_FRONT_ADDRESS 0x30
+#define LOX_REAR_ADDRESS 0x31
 
 /* 
  *   Motor labeling/numbering is as follows:
@@ -80,6 +89,7 @@ ros::NodeHandle nh;
 //std_msgs::String tip_state_msg;
 char tip_state_str[9]="inactive";
 char fsi_msg_str[80];
+char vlx_msg_str[80];
 
 std_msgs::Int32 left_ticks_out;
 std_msgs::Int32 right_ticks_out;
@@ -89,8 +99,8 @@ std_msgs::Float64 tilt_cmd_msg;
 
 const geometry_msgs::Twist vel_msg;
 
-sensor_msgs::Range vlx_front;
-sensor_msgs::Range vlx_rear;
+sensor_msgs::Range vlx_front_msg;
+sensor_msgs::Range vlx_rear_msg;
 
 float cliff_max = 0.60;
 
@@ -98,7 +108,15 @@ volatile long left_ticks=0;
 volatile long right_ticks=0;
 
 DualVNH5019MotorShield md;
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+
+// objects for the vl53l0x
+Adafruit_VL53L0X lox_front = Adafruit_VL53L0X();
+Adafruit_VL53L0X lox_rear = Adafruit_VL53L0X();
+
+// this holds the measurement
+VL53L0X_RangingMeasurementData_t measure_front;
+VL53L0X_RangingMeasurementData_t measure_rear;
+
 
 IBusBM IBus; // IBus object for receivig signals from transmitter/receiver
 
@@ -109,14 +127,12 @@ ros::Publisher fsi_pub("flysky",&fsi_msg);
 //Control happens inside the iBus node now and output goes right to the motors, so there is "no Joy"
 //ros::Subscriber<sensor_msgs::Joy> sub_joy("joy", JoyModeCb);
 
-ros::Publisher left_enc_pub("left_ticks",&left_ticks_out);
-ros::Publisher right_enc_pub("right_ticks",&right_ticks_out);
+//ros::Publisher left_enc_pub("left_ticks",&left_ticks_out);
+//ros::Publisher right_enc_pub("right_ticks",&right_ticks_out);
 ros::Publisher tilt_pub("mastcam_tilt_controller/command",&tilt_cmd_msg);
 ros::Publisher pan_pub("mastcam_pan_controller/command",&pan_cmd_msg);
-ros::Publisher vlx_front_pub("vlx/front_cliff",&vlx_front);
-ros::Publisher vlx_rear_pub("vlx/rear_cliff",&vlx_front);
-
-
+ros::Publisher vlx_front_pub("vlx/front_cliff",&vlx_front_msg);
+ros::Publisher vlx_rear_pub("vlx/rear_cliff",&vlx_rear_msg);
 
 void left_enc_Cb() {
    
@@ -145,6 +161,45 @@ void right_enc_Cb() {
 
 }
 
+void vlx_remap_IDs() {
+  Serial.println("Reached setID");
+  // all reset
+  digitalWrite(SHT_LOX_FRONT, LOW);    
+  digitalWrite(SHT_LOX_REAR, LOW);
+  delay(10);
+  // all unreset
+  digitalWrite(SHT_LOX_FRONT, HIGH);
+  digitalWrite(SHT_LOX_REAR, HIGH);
+  delay(10);
+
+  // activating LOX1 and resetting LOX2
+  digitalWrite(SHT_LOX_FRONT, HIGH);
+  digitalWrite(SHT_LOX_REAR, LOW);
+ 
+  pinMode(SHT_LOX_FRONT,INPUT);
+  // initing LOX1
+  if(!lox_front.begin(LOX_FRONT_ADDRESS,true)) {
+    Serial.println(F("Failed to boot first VL53L0X"));
+    while(1);
+  }
+  delay(10);
+  Serial.println(F("Started first VL53L0X"));
+  delay(100);
+  
+  // activating LOX2
+  digitalWrite(SHT_LOX_REAR, HIGH);
+  delay(10);
+  
+  pinMode(SHT_LOX_REAR,INPUT);
+  //initing LOX2
+  if(!lox_rear.begin(LOX_REAR_ADDRESS,true)) {
+    Serial.println(F("Failed to boot second VL53L0X"));
+    while(1);
+  }
+    Serial.println(F("Started second VL53L0X"));
+    delay(100);
+}
+
 void setup() {
 
 // Set up encoder interrupts
@@ -162,29 +217,42 @@ void setup() {
 
    digitalWrite(TELEOP_STATUS,LOW);
 
-  vlx_front.radiation_type=sensor_msgs::Range::INFRARED;
-  vlx_front.field_of_view = 0.44; //25 degrees
-  vlx_front.min_range = 0.03;
-  vlx_front.max_range = 8.20; 
+   //VLX sensors come with the same I2C address by default, so we have to remap those. 
+   vlx_remap_IDs();
 
+  //Fill out the .data fields of the VLX Range msgs
+   
+  vlx_front_msg.radiation_type=sensor_msgs::Range::INFRARED;
+  vlx_front_msg.field_of_view = 0.44; //25 degrees
+  vlx_front_msg.min_range = 0.03;
+  vlx_front_msg.max_range = 8.20;
+
+  vlx_rear_msg.radiation_type=sensor_msgs::Range::INFRARED;
+  vlx_rear_msg.field_of_view = 0.44; //25 degrees
+  vlx_rear_msg.min_range = 0.03;
+  vlx_rear_msg.max_range = 8.20;
+
+  //init the ROS nodes
+  
     nh.initNode();    
-    nh.advertise(left_enc_pub);
-    nh.advertise(right_enc_pub);
+//    nh.advertise(left_enc_pub);
+//    nh.advertise(right_enc_pub);
     nh.advertise(drive_pub);
     nh.advertise(fsi_pub);
     nh.advertise(tilt_pub);
     nh.advertise(pan_pub);
     nh.advertise(vlx_front_pub);
+    nh.advertise(vlx_rear_pub);
     md.init(); 
 
-    //Serial.begin(115200);
-    Serial.begin(57600);
+      Serial.begin(115200);
+    //debug serial 
+      Serial3.begin(115200);
+    //Serial.begin(57600);
     // Init iBus 
     IBus.begin(Serial2);    // iBUS connected to Serial2
-                                // but only uses pin 17(RX)
-    //Start VLX cliff sensor
-    lox.begin();
-
+                            // but only uses pin 17(RX)
+     
     geometry_msgs::Twist start_tw;
       start_tw.linear.x= 0.0;
       start_tw.linear.y=0.0;
@@ -218,8 +286,9 @@ void setup() {
      float mastcam_tilt=0.0;
      float mastcam_pan=0.0;
 
-     float vlx_cliff_range=0.0;
-
+     float vlx_front_range=0.0;
+     float vlx_rear_range=0.0;
+     
      int tip_dir=0;
      int tip_state=0;
            
@@ -242,28 +311,38 @@ void setup() {
       rcval_safety=readSwitch(4,false); //SWA
       tip_state = readSwitch(5,false);  //SWB
       
+    if(rcval_safety == 1) { 
+       digitalWrite(TELEOP_STATUS,HIGH);      
+    } else {
+       digitalWrite(TELEOP_STATUS,LOW);
+    }
+
     //mastcam channels
       rcval_pan = readChannel(8,-100,100,0);  //VRA dial
       rcval_tilt = readChannel(9,-100,100,0); //VRB dial 
       rcval_autonomy = readSwitch(7,false); //SWD
 
     // read VLX for cliff state
-    VL53L0X_RangingMeasurementData_t measure;
-    lox.rangingTest(&measure, false); 
-    
-    if(rcval_safety == 1) { 
-       digitalWrite(TELEOP_STATUS,HIGH);      
-    } else {
-       digitalWrite(TELEOP_STATUS,LOW);
-    }
+    VL53L0X_RangingMeasurementData_t measure_front;
+    VL53L0X_RangingMeasurementData_t measure_rear;
+   
+    lox_front.rangingTest(&measure_front, false); 
+    lox_rear.rangingTest(&measure_rear,false);
       
-    if (measure.RangeStatus != 4) {  // phase failures have incorrect data
-       vlx_cliff_range = measure.RangeMilliMeter;
-       vlx_front.range = measure.RangeMilliMeter/1000.0f;
+    if (measure_front.RangeStatus != 4) {  // phase failures have incorrect data
+       vlx_front_range = measure_front.RangeMilliMeter;
+       vlx_front_msg.range = measure_front.RangeMilliMeter/1000.0f;
     }
-    //Publish cliff sensor data constantly 
+
+    if (measure_rear.RangeStatus !=4) { 
+       vlx_rear_range = measure_rear.RangeMilliMeter;
+       vlx_rear_msg.range = measure_rear.RangeMilliMeter/1000.0f;
+    }
     
-    vlx_front_pub.publish(&vlx_front);
+    //Publish cliff sensor data constantly 
+    sprintf(vlx_msg_str,"vlx_front:%f vlx_rear:%f",vlx_front_msg.range,vlx_rear_msg.range);
+    vlx_front_pub.publish(&vlx_front_msg);
+    vlx_rear_pub.publish(&vlx_rear_msg);
 
    //Drive Speed is a direct map between IBUS controller values and VNH Controller values
    //Not relying on /joy value translation
@@ -276,7 +355,13 @@ void setup() {
    mastcam_pan = rcval_pan *0.01;
    mastcam_tilt = rcval_tilt *0.01;
    sprintf(fsi_msg_str,"%d %d %d %d %d",rcval_x,rcval_z,tip_state,rcval_tilt,rcval_safety);
-   //sprintf(fsi_msg_str,"Ch 0:%d Ch 2:%d Ch 8:%d Ch 9:%d Ch 4:%d Ch 5:%d Ch 7:%d",rcval_x,rcval_z,rcval_tilt,rcval_pan,rcval_safety,tip_state,rcval_autonomy);
+   Serial3.print("FSI:");
+   Serial3.println(fsi_msg_str);
+   Serial3.print("VLX:");
+   Serial3.println(vlx_msg_str);
+
+   
+  // Serial3.println("VLX:%s",vlx_msg_str);
    
    if (tip_state == 1) { 
        in_place = true;
@@ -288,7 +373,7 @@ void setup() {
    //Check to see if Drive Safety has been engaged
    //Flipping this up should cut the motors immediately. 
    if (rcval_safety == 1) {
-     if (vlx_front.range < cliff_max) { 
+     if (vlx_front_msg.range < cliff_max) { 
       md.setM1Speed(drive_speed);
       md.setM2Speed(drive_speed);
      } else {
@@ -341,12 +426,14 @@ void setup() {
    }
      //make sure we publish motor topics outside of rcval check so we don't starve subscribers
      //if we're in a safety condition, we should zero out the Twist message vs. not publishing
-     
+  /*   
        left_ticks_out.data=left_ticks;
        right_ticks_out.data=right_ticks;
        
        left_enc_pub.publish(&left_ticks_out);
        right_enc_pub.publish(&right_ticks_out);
+
+   */
 
       // cmd_vel publish
       geometry_msgs::Twist tw;
