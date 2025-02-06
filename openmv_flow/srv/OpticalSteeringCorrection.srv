@@ -1,0 +1,4 @@
+float32 x_pixel_diff
+float32 y_pixel_diff
+---
+float32 steering_correction

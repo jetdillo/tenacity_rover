@@ -1,0 +1,10 @@
+camera_name: openmv_cam
+camera_height: 250  # mm
+camera_tilt: 30  # degrees
+horizontal_fov: 60.7  # degrees
+vertical_fov: 47.5  # degrees
+image_width: 128  # pixels
+image_height: 128  # pixels
+sensor_width: 640
+sensor_height: 480
+robot_speed: 250  # mm/s (0.25 m/s)

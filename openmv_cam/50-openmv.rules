@@ -1,0 +1,3 @@
+# OpenMV
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{MTP_NO_PROBE}="1", MODE:="0666", GROUP="plugdev", SYMLINK+="openmvdfu"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="abd1", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{MTP_NO_PROBE}="1", MODE:="0666", GROUP="plugdev", SYMLINK+="openmvcam"

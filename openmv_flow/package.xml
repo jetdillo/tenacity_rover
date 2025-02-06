@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>openmv_flow</name>
+  <version>0.0.0</version>
+  <description>Use openmv optical flow for steering correction</description>
+
+  <maintainer email="espressobot@gmail.com">armadilo</maintainer>
+
+  <license>TODO</license>
+  <url type="website">https://github.com/jetdillo</url> 
+
+  <author email="espressobot@gmail.com">armadilo</author> -->
+
+
+  <!--   <depend>roscpp</depend> -->
+  <depend>message_generation</depend>
+  <exec_depend>message_runtime</exec_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+  <export>
+  </export>
+</package>
