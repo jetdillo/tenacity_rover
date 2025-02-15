@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 import rospy
 import time
-from std_msgs.msg import Float64,Float32,Bool
+from std_msgs.msg import Float64,Bool
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from sensor_msgs.msg import Range
 from dynamixel_msgs.msg import JointState
-from openmv_flow.srv import OpticalSteeringCorrection, OpticalSteeringCorrectionResponse
-from openmv_flow.msg import OpticalDrift
 
 #Generic steering interface for non-teleop nodes to control the Dynamixels that control the corner steering.
 #Reads off /cmd_vel like a normal control interface and publishes those values to 
@@ -36,22 +34,14 @@ class Wander:
       self.warn_range=0.4
       self.critical_range=0.15
 
-      self.pixel_drift_x = 0.0
-      self.pixel_drift_y = 0.0
-      self.time_elapsed = 0.0
-
-      rospy.init_node("steering_trim")
+      rospy.init_node("sonar_trim")
 
       self.sonar=['/ultrasound/forward_left','/ultrasound/forward_right']
       self.cliff='/vlx/front_cliff'
 
-      od_topic='/optical_drift'
-      osc_service='optical_steering_correction'
-
       rospy.Subscriber(self.sonar[0],Range,self.front_left_sonar_cb)
       rospy.Subscriber(self.sonar[1],Range,self.front_right_sonar_cb)
       rospy.Subscriber(self.cliff,Range,self.cliff_cb)
-      rospy.Subscriber(od_topic,OpticalDrift,self.optical_drift_cb)
 
       if not 'ackerman' in rospy.get_published_topics():
          steer_topic='/cmd_vel'
@@ -61,21 +51,6 @@ class Wander:
       rospy.Subscriber(steer_topic,Twist,self.cmd_vel_cb)
          
       self.drive=rospy.Publisher(steer_topic,Twist,queue_size=10)
-
-      #Bring up the optical flow steering 
-      rospy.Subscriber(od_topic,OpticalDrift,self.optical_drift_cb)
-      rospy.wait_for_service('optical_steering_correction')
-      try:
-        self.get_correction = rospy.ServiceProxy('optical_steering_correction',OpticalSteeringCorrection)
-      except:
-          rospy.loginfo("Error connecting to OpticalSteering Server...")
-          rospy.loginfo("Steering Trim Controller exiting!")
-          sys.exit(1)
-      
-
-   def optical_drift_cb(self,data):
-      self.pixel_drift_x = data.xdiff
-      self.pixel_drift_y = data.ydiff
 
    def cmd_vel_cb(self,data):
       self.twist.linear.x = data.linear.x
@@ -139,13 +114,6 @@ class Wander:
 
                #t.linear.x=self.twist.linear.x
                #self.drive.publish(t)  
-
-            #Get Steering Correction here from Optical Flow Correction Service
-            #Collect pixel drift samples over some time interval 
-            #adding up the total drift during that sample
-            #feed that into the correction server
-            #Publish the results onto /cmd_vel
-
             #Otherwise a cliff_alarm has been triggered. 
             else:
                t=Twist()
