@@ -1,4 +1,5 @@
-float32 x_pixel_diff
-float32 y_pixel_diff
+float32 pixel_drift_x
+float32 pixel_drift_y
+float32 time_elapsed
 ---
 float32 steering_correction

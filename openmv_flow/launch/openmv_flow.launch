@@ -1,9 +1,16 @@
 <launch>
+    
+<!-- Load params for OpenMV Cam file -->
+    <rosparam command="load" file="$(find openmv_flow)/config/optical_flow.yaml" />
 
+    <!-- Start the openmv_flow optical_drift node -->
     <arg name="device" default="/dev/openmvcam" />
         <node pkg="openmv_flow" name="openmv_flow" type="optical_drift.py">
             <param name="device" value="$(arg device)" />
         <rosparam command="load" file="$(find openmv_flow)/config/optical_flow.yaml" />
         </node>
+
+    <!-- Start the steering correction server -->
+    <node name="optical_steering_correction" pkg="openmv_flow" type="optical_steering_correction_server.py"     output="screen" />
 
 </launch>
