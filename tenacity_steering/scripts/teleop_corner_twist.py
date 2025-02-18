@@ -20,20 +20,30 @@ class Corner:
       #init Dict to hold steering state for each servo
       self.steer_mode=0
       self.steer_state={}
+      self.mastcam_state={}
       self.twist = Twist()
       self.jss = JointState_SM()
+      self.mcs = JointState_SM()
       rospy.init_node("corner_steering_ctl")
       rospy.Subscriber("/cmd_vel",Twist,self.cmd_vel_cb)
       #rospy.Subscriber("/joy", Joy, self.joy_cb)
       #We have 4 named steering controllers, create subscribers and publishers for them 
 
       self.jss.name=self.steer_controllers=['front_left','front_right','rear_left','rear_right']
+      
+      self.mcs.name=self.mastcam_controllers=['pan','tilt']
 
       self.jss.position=[0.0,0.0,0.0,0.0]
       self.jss.velocity=[0.0,0.0,0.0,0.0]
 
+      self.mcs.position=[0.0,0.0,0.0,0.0]
+      self.mcs.velocity=[0.0,0.0,0.0,0.0]
+
       for s in self.steer_controllers:
          self.steer_state[s]=0.0
+
+      for s in self.mastcam_controllers:
+         self.mastcam_state[s]=0.0
 
       #print(self.jss.name)
 
@@ -41,11 +51,18 @@ class Corner:
          steer_topic_str=s+"_controller/state"
          #print steer_topic_str
          rospy.Subscriber(steer_topic_str,JointState_DM,self.steering_state_cb)
+      
+#      for s in self.mastcam_controllers:
+#          mastcam_topic_str="mastcam_"+s+"_controller"
+#          rospy.Subscriber(mastcam_topic_str,JointState_DM,self.mastcam_state_cb)
 
       self.front_left_sp=rospy.Publisher('/front_left_controller/command',Float64,queue_size=1)
       self.front_right_sp=rospy.Publisher('/front_right_controller/command',Float64,queue_size=1)
       self.rear_left_sp=rospy.Publisher('/rear_left_controller/command',Float64,queue_size=1)
       self.rear_right_sp=rospy.Publisher('/rear_right_controller/command',Float64,queue_size=1)
+
+      self.mastcam_pan_sp=rospy.Publisher('/mastcam_pan_controller/command',Float64,queue_size=1)
+      self.mastcam_tilt_sp=rospy.Publisher('/mastcam_tilt_controller/command',Float64,queue_size=1)
 
       self.js_repub=rospy.Publisher('joint_states',JointState_SM,queue_size=1)
 
@@ -98,28 +115,48 @@ class Corner:
       for j in range(0,len(jsp)):
          self.jss.position[j]=jsp[j]
 
+
+#There's a more elegant way to do this, but this more literate
    def exercise(self,exer_count):
-      angles=[0.64,-0.64]
+      steer_angles=[0.64,-0.64]
+      cam_angles=[1.57,-1.57]
       #dir=[1,-1]
+
+      rospy.loginfo("Exercise joint(steering, mastcam) topics")
+
       for p in range(0,exer_count):
 
-          leftside=angles[0]
-          rightside=angles[1]
-         
-          self.front_left_sp.publish(leftside)
-          self.front_right_sp.publish(rightside)
-          self.rear_left_sp.publish(leftside)
-          self.rear_right_sp.publish(rightside)
-          
-          time.sleep(2)
-          
-          leftside=angles[1]
-          rightside=angles[0]
+          leftside=steer_angles[0]
+          rightside=steer_angles[1]
 
           self.front_left_sp.publish(leftside)
           self.front_right_sp.publish(rightside)
           self.rear_left_sp.publish(leftside)
           self.rear_right_sp.publish(rightside)
+
+          self.mastcam_pan_sp.publish(cam_angles[0])
+          self.mastcam_tilt_sp.publish(cam_angles[1])
+         
+          rospy.loginfo("Left Steering: %f Right Steering: %f Mastcam Pan %f Mastcam Tilt %f", leftside,rightside,cam_angles[0],cam_angles[1])
+
+          time.sleep(2)
+          
+          leftside=steer_angles[1]
+          rightside=steer_angles[0]
+
+          self.front_left_sp.publish(leftside)
+          self.front_right_sp.publish(rightside)
+          self.rear_left_sp.publish(leftside)
+          self.rear_right_sp.publish(rightside)
+
+          self.mastcam_pan_sp.publish(cam_angles[1])
+          self.mastcam_tilt_sp.publish(cam_angles[0])
+
+          rospy.loginfo("Left Steering: %f Right Steering: %f Mastcam Pan %f Mastcam Tilt %f", leftside,rightside,cam_angles[1],cam_angles[0])
+
+          time.sleep(2)
+          self.mastcam_pan_sp.publish(0.0)
+          self.mastcam_tilt_sp.publish(0.0)
 
    def run(self): 
       rate= rospy.Rate(1)
