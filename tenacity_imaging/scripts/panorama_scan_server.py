@@ -9,7 +9,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 import cv2
-from panorama_scan.msg import PanoramaScanAction, PanoramaScanResult
+from tenacity_imaging.msg import PanoramaScanAction, PanoramaScanResult
 
 class PanoramaScanActionServer:
     def __init__(self):
@@ -36,8 +36,11 @@ class PanoramaScanActionServer:
     def execute(self, goal):
         # Create a directory for the scan
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        scan_dir = f"/tmp/tenacity_scan_{timestamp}"
-        os.makedirs(scan_dir, exist_ok=True)
+        #scan_dir = f"/tmp/tenacity_scan_{timestamp}"
+        scan_dir = "/tmp/tenacity_scan_"+timestamp
+        #os.makedirs(scan_dir, exist_ok=True)
+        if not os.path.exists(scan_dir):
+            os.makedirs(scan_dir)
 
         # Initialize tilt position
         tilt_angle = 0.0
@@ -62,8 +65,9 @@ class PanoramaScanActionServer:
                     rospy.sleep(0.1)
 
                 # Save image and depth
-                image_filename = f"{scan_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4()}.jpg"
-                depth_filename = f"{scan_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4()}.png"
+                image_filename = scan_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+"_"+str(uuid.uuid4())+".jpg"
+
+                depth_filename = scan_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+"_"+str(uuid.uuid4())+".png"
                 cv2.imwrite(image_filename, self.current_image)
                 cv2.imwrite(depth_filename, self.current_depth)
 
