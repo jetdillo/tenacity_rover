@@ -1,8 +1,10 @@
 # Example parameters (customize as needed)
-pan_increment: 30.0
-tilt_increment: 30.0
-pan_range: [-90.0, 90.0]
-tilt_range: [-90.0, 90.0]
+# Angles and increments in radians
+pan_increment: 0.52
+tilt_increment: 0.52
+pan_range: [-1.57, 1.57]
+tilt_range: [-1.57,1.57]
+tilt_points: [0.0,-1.57,-1.05,-0.52,0.52,1.05]
 image_topic: "/rgb_stereo_publisher/color/image"
 depth_topic: "/rgb_stereo_publisher/stereo/depth"
 pan_topic: "/mastcam_pan_controller/command"
