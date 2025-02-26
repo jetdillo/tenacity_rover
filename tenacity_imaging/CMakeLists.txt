@@ -48,7 +48,9 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate actions in the 'action' folder
  add_action_files(
-	 FILES PanoramaScan.action
+	 FILES 
+	 PanoramaScan.action
+	 MastCamSnapshot.action
  )
 
 ## Generate added messages and services with any dependencies listed here
@@ -84,6 +86,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
    scripts/panorama_scan_server.py
+   scripts/mastcam_snapshot_server.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

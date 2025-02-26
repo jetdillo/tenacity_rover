@@ -1,0 +1,10 @@
+# Example parameters (customize as needed)
+# Angles and increments in radians
+pan_range: [-1.57, 1.57]
+tilt_range: [-1.57,1.57]
+key_points: {'ahead':[0.00,0.00],'nose_90':[0.000,-1.5757],'left_wheel':[1.05,-1.05],'right_wheel':[-1.05,-1.05],'nose_60':[0.00,-1.05],'shoulder_left':[1.5757,0.0],'shoulder_right':[-1.5757,0.00]} 
+
+image_topic: "/rgb_stereo_publisher/color/image"
+depth_topic: "/rgb_stereo_publisher/stereo/depth"
+pan_topic: "/mastcam_pan_controller/command"
+tilt_topic: "/mastcam_tilt_controller/command"

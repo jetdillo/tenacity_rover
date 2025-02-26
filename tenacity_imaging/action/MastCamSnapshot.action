@@ -1,0 +1,8 @@
+# Goal Pan/Tilt angles in radians
+string vista_name
+---
+# Result
+string img_path
+---
+# Feedback (empty, since no feedback is provided)
+string fb

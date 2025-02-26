@@ -2,7 +2,7 @@
 <package format="2">
   <name>tenacity_imaging</name>
   <version>0.0.0</version>
-  <description>The tenacity_imaging package</description>
+  <description>Imaging for Tenacity using the MastCam</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
