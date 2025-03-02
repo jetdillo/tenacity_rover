@@ -5,20 +5,25 @@ import rospy
 import actionlib
 import os
 import uuid
+import yaml
 from datetime import datetime
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 import cv2
-from tenacity_imaging.msg import MastCamSnapshotAction, MastCamSnapshotResult
+from tenacity_imaging.msg import MastCamSnapshotAction, MastCamSnapshotFeedback,MastCamSnapshotResult
 from dynamixel_msgs.msg import JointState as JointState_DM
 
 
 class MastCamSnapshotActionServer:
     def __init__(self):
-        #self.server = actionlib.SimpleActionServer('mastcam_snapshot', MastCamSnapshotAction, self.execute, False)
-        self.server = actionlib.SimpleActionServer(rospy.get_name(),MastCamSnapshotAction,execute_cb=self.execute_cb,auto_start=False)
-        self.server.start()
+        self.mcss = actionlib.SimpleActionServer(rospy.get_name(),
+                      MastCamSnapshotAction,
+                      execute_cb=self.execute_cb,
+                      auto_start=False)
+        self.mcss.start()
+        rospy.loginfo("MastCam Action Server %s Started" % rospy.get_name())
+
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/rgb_stereo_publisher/color/image', Image, self.image_cb)
         self.depth_sub = rospy.Subscriber('/rgb_stereo_publisher/stereo/depth', Image, self.depth_cb)
@@ -34,7 +39,13 @@ class MastCamSnapshotActionServer:
         self.pan_pos = 0.0
         self.tilt_pos = 0.0
 
-        self.key_positions=rospy.get_param("/mastcam_snapshot_server/diag_points")
+        with open('/home/ubuntu/catkin_ws/src/tenacity_imaging/config/mastcam_snapshot_params.yaml', 'r') as file:
+            params = yaml.safe_load(file)
+            for key, value in params.items():
+                rospy.set_param(key, value)
+                rospy.loginfo("%s = %s" % (key,value))
+
+        self.vistas=rospy.get_param("/key_points")
 
     def image_cb(self, img):
         self.current_image = self.bridge.imgmsg_to_cv2(img, "bgr8")
@@ -52,14 +63,8 @@ class MastCamSnapshotActionServer:
 
     def execute_cb(self, goal):
         # Create a directory for the snapshot
-
-        rospy.loginfo('%s action server taking snapshot at %s' % (rospy.get_name(),goal.target_name))
-
-        pan_pos,tilt_pos=self.keypoints(goal.target_name)
-
-        self.tilt_pub.publish(Float64(tilt_angle))
-        self.pan_pub.publish(Float64(pan_angle))
-
+        success=False
+        rospy.loginfo('%s action mcss taking snapshot at %s' % (rospy.get_name(),goal.vista_name))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         #snapshot_dir = f"/tmp/tenacity_snapshot_{timestamp}"
         snapshot_dir = "/tmp/tenacity_snapshot_"+timestamp
@@ -76,45 +81,61 @@ class MastCamSnapshotActionServer:
         # Initialize pan position 
         pan_angle = 0.0
 
-        rospy.loginfo("Taking snapshot at commanded position")
-        rospy.loginfo("pan_angle:%f tilt_angle:%f",self.pan_pos,self.tilt_pos)
+        rospy.loginfo("Homing mastcam")
+        self.tilt_pub.publish(Float64(tilt_angle))
+        self.pan_pub.publish(Float64(pan_angle))
+       
+        rospy.sleep(3)
 
-        while True:
+        feedback = MastCamSnapshotFeedback()
+        feedback.fb = "Homed to mastcam pan:"+str(self.pan_pos)+" mastcam tilt:"+str(self.tilt_pos)
+        self.mcss.publish_feedback(feedback)
+   
+        rospy.loginfo("Moving mastcam to commanded position")
+
             # Set tilt position
-            pan_angle = (90.0 * math.pi) / 180 
-            self.tilt_pub.publish(Float64(tilt_angle))
-            self.pan_pub.publish(Float64(pan_angle))
-            rospy.sleep(3)  # Wait for the tilt servo to reach the position
+        pan_target,tilt_target=self.vistas[goal.vista_name]
+        self.tilt_pub.publish(Float64(tilt_target))
+        self.pan_pub.publish(Float64(pan_target))
 
-            # Initialize pan position
+        rospy.sleep(3)
+
+        feedback = MastCamSnapshotFeedback()
+        feedback.fb = "Reached mastcam pan:"+str(self.pan_pos)+" mastcam tilt:"+str(self.tilt_pos)
+        self.mcss.publish_feedback(feedback)
+
+        rospy.loginfo("Taking snapshot at %s",goal.vista_name)
+
             # Capture image and depth
-            self.image_ready = False
-            self.depth_ready = False
-            while not self.image_ready or not self.depth_ready:
-                rospy.sleep(1)
-            rospy.loginfo("image_ready:%s depth_ready: %s",self.image_ready,self.depth_ready)
+        self.image_ready = False
+        self.depth_ready = False
+        while not self.image_ready or not self.depth_ready:
+            rospy.sleep(1)
+            feedback = MastCamSnapshotFeedback()
+            feedback.fb = "Waiting on camera stream..."
+            self.mcss.publish_feedback(feedback)
+
+        rospy.loginfo("image_ready:%s depth_ready: %s",self.image_ready,self.depth_ready)
                     
-            rospy.loginfo("Grabbing image at camera position %f %f",self.pan_pos,self.tilt_pos)
-                    # Save image and depth
-            #image_filename = rgb_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+"_"+str(uuid.uuid4())+".jpg"
-            image_filename = rgb_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+str(self.pan_pos)+"_"+str(self.tilt_pos)+".jpg"
+        image_filename = rgb_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+str(self.pan_pos)+"_"+str(self.tilt_pos)+".jpg"
     
             #depth_filename = snapshot_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+"_"+str(uuid.uuid4())+".png"
-            depth_filename = depth_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+"_"+str(self.pan_pos)+"_"+str(self.tilt_pos)+".png"
-            cv2.imwrite(image_filename, self.current_image)
-            cv2.imwrite(depth_filename, self.current_depth)
-    
-            # Wait 5 seconds at -90 degrees pan
-            rospy.sleep(5)
+        depth_filename = depth_dir+"/"+datetime.now().strftime('%Y%m%d_%H%M%S')+"_"+str(self.pan_pos)+"_"+str(self.tilt_pos)+".png"
+        try:
+           cv2.imwrite(image_filename, self.current_image)
+           cv2.imwrite(depth_filename, self.current_depth)
+           success=True
+        except cv2.error as e: 
+           success=False 
+           rospy.loginfo("Snapshot Action failed with error %s",e)
 
-            break  # Exit the loop when tilt reaches -90 degrees
 
         # Return the result
         result = MastCamSnapshotResult()
-        result.snapshot_directory = snapshot_dir
-        self.server.set_succeeded(result)
+        result.img_path = snapshot_dir
+        self.mcss.set_succeeded(result)
 
 if __name__ == '__main__':
     rospy.init_node('mastcam_snapshot_server')
-    server = MastCamSnapshotActionServer()
+    mcss = MastCamSnapshotActionServer()
     rospy.spin()
