@@ -128,7 +128,9 @@ class MastCamSnapshotActionServer:
         except cv2.error as e: 
            success=False 
            rospy.loginfo("Snapshot Action failed with error %s",e)
-
+           result=self.get_default_result()
+           abort_txt=e
+           self.mcss.set_aborted(result,abort_txt)
 
         # Return the result
         result = MastCamSnapshotResult()

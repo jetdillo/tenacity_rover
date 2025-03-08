@@ -10,12 +10,16 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 import cv2
-from tenacity_imaging.msg import PanoramaScanAction, PanoramaScanResult
+from tenacity_imaging.msg import PanoramaScanAction, PanoramaScanFeedback,PanoramaScanResult
 from dynamixel_msgs.msg import JointState as JointState_DM
-
 
 class PanoramaScanActionServer:
     def __init__(self):
+        
+        self.ti_params = [ p for p in rospy.get_param_names() 
+                           if 'panorama' in p or 'tenacity_imaging' in p ]
+        rospy.loginfo("Read in %s matching parameters",self.ti_params)
+
         self.server = actionlib.SimpleActionServer('panorama_scan', PanoramaScanAction, self.execute, False)
         self.server.start()
         self.bridge = CvBridge()
@@ -61,18 +65,27 @@ class PanoramaScanActionServer:
 
         # Initialize tilt position
         tilt_angle = 0.0
-        tilt_increment = rospy.get_param("/panorama_scan_server/tilt_increment")
-        tilt_direction = 1  # 1 for positive, -1 for negative
- 
-        tilt_points = rospy.get_param("/panorama_scan_server/tilt_points")
+        if goal.tilt_band !=0.0:
+           tilt_increment = rospy.get_param("/panorama_scan_server/tilt_increment")
+           tilt_direction = 1  # 1 for positive, -1 for negative
+           tilt_points = rospy.get_param("/panorama_scan_server/tilt_points")
+        else:
+           tilt_increment = 0.0
+           tilt_direction = 1
+           tilt_points = [0.0]
 
         # Initialize pan position 
         pan_angle = 0.0
         pan_increment = rospy.get_param("/panorama_scan_server/pan_increment")
         pan_direction = 1
+        pan_range = rospy.get_param("/panorama_scan_server/pan_range")
+        rospy.loginfo("Starting panorama capture at %f %f with pan_range:%f tilt_range:%f" % (pan_angle,tilt_angle,pan_range,goal.tilt_band))
 
-        rospy.loginfo("Starting panorama capture")
         rospy.loginfo("pan_angle:%f tilt_angle:%f",self.pan_pos,self.tilt_pos)
+
+        #Home Pan/Tilt
+        self.pan_pub.publish(Float64(pan_angle))
+        self.tilt_pub.publish(Float64(tilt_angle))
 
         while True:
             # Set tilt position
@@ -80,17 +93,18 @@ class PanoramaScanActionServer:
             rospy.sleep(3)  # Wait for the tilt servo to reach the position
 
             # Initialize pan position
-            pan_angle = (90.0 * math.pi) / 180 
-            self.pan_pub.publish(Float64(pan_angle))
-            rospy.sleep(3)  # Wait for the pan servo to reach the initial position
+            #pan_angle = (90.0 * math.pi) / 180 
+            #pan_angle = pan_range[0]
+            #self.pan_pub.publish(Float64(pan_angle))
+            #rospy.sleep(3)  # Wait for the pan servo to reach the initial position
 
             for tilt_angle in tilt_points:
                 self.tilt_pub.publish(Float64(tilt_angle))
-                pan_angle = (90.0 * math.pi) / 180 
+                pan_angle = pan_angle[1]
                 self.pan_pub.publish(Float64(pan_angle))
                 rospy.sleep(3)  # Wait for the pan servo to reach the initial position
                 
-                while pan_angle >= -1.57:
+                while pan_angle >= pan_range[0]:
                     rospy.loginfo("PAN ACTION - MOVING TO pan_angle:%f tilt_angle:%f",self.pan_pos,self.tilt_pos)
                     # Capture image and depth
                     self.image_ready = False

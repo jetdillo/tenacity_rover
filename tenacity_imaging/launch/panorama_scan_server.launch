@@ -2,6 +2,7 @@
   <!-- Panorama Scan Action Server -->
   <node name="panorama_scan_server" pkg="tenacity_imaging" type="panorama_scan_server.py" output="screen">
     <!-- Load parameters if needed -->
-    <rosparam command="load" file="$(find tenacity_imaging)/config/panorama_scan_params.yaml" />
+    <rosparam command="load" file="$(find tenacity_imaging)/config/panorama_scan_server.yaml" />
+    <rosparam command="load" file="$(find tenacity_imaging)/config/tenacity_imaging.yaml" />
   </node>
 </launch>

@@ -2,6 +2,7 @@
   <!-- Panorama Scan Action Server -->
   <node name="mastcam_snapshot_server" pkg="tenacity_imaging" type="mastcam_snapshot_server.py" output="screen">
     <!-- Load parameters if needed -->
-    <rosparam command="load" file="$(find tenacity_imaging)/config/mastcam_snapshot_params.yaml" />
+    <rosparam command="load" file="$(find tenacity_imaging)/config/mastcam_snapshot_server.yaml" />
+    <rosparam command="load" file="$(find tenacity_imaging)/config/tenacity_imaging.yaml" />
   </node>
 </launch>

@@ -1,0 +1,5 @@
+image_topic: "/rgb_stereo_publisher/color/image"
+depth_topic: "/rgb_stereo_publisher/stereo/depth"
+pan_topic: "/mastcam_pan_controller/command"
+tilt_topic: "/mastcam_tilt_controller/command"
+spatial_detections_topic: "/yolov4_publisher/color/yolov4_Spatial_detections"

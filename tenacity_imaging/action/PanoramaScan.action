@@ -1,6 +1,8 @@
 # Goal (empty, since no input is required)
+float32 tilt_band
 ---
 # Result
 string scan_directory
 ---
 # Feedback (empty, since no feedback is provided)
+float32 percent
